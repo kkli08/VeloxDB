@@ -7,30 +7,27 @@ project(VeloxDB)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-## Find the required protobuf package
-#find_package(Protobuf REQUIRED)
-#
-## Specify the path to the .proto files
-#set(PROTO_FILES
-#        ${PROJECT_SOURCE_DIR}/protobuf/KeyValue.proto
-#        ${PROJECT_SOURCE_DIR}/protobuf/SSTIndex.proto
-#)
-#
-## Set the output directory for the generated .pb.cc and .pb.h files
-#set(GENERATED_PROTO_DIR ${PROJECT_SOURCE_DIR}/protobuf)
-#
-## Command to generate .pb.cc and .pb.h files from .proto files
-#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+# Find the required protobuf package
+find_package(Protobuf REQUIRED)
 
-## Ensure that the generated files are placed in the protobuf directory
-#set(PROTO_SRCS
-#        ${GENERATED_PROTO_DIR}/KeyValue.pb.cc
-#        ${GENERATED_PROTO_DIR}/SSTIndex.pb.cc
-#)
-#set(PROTO_HDRS
-#        ${GENERATED_PROTO_DIR}/KeyValue.pb.h
-#        ${GENERATED_PROTO_DIR}/SSTIndex.pb.h
-#)
+# Specify the path to the .proto files
+set(PROTO_FILES
+        ${PROJECT_SOURCE_DIR}/protobuf/KeyValue.proto
+)
+
+# Set the output directory for the generated .pb.cc and .pb.h files
+set(GENERATED_PROTO_DIR ${PROJECT_SOURCE_DIR}/protobuf)
+
+# Command to generate .pb.cc and .pb.h files from .proto files
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+
+# Ensure that the generated files are placed in the protobuf directory
+set(PROTO_SRCS
+        ${GENERATED_PROTO_DIR}/KeyValue.pb.cc
+)
+set(PROTO_HDRS
+        ${GENERATED_PROTO_DIR}/KeyValue.pb.h
+)
 
 # Include GoogleTest via FetchContent
 include(FetchContent)
@@ -46,40 +43,38 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 # ---- TEST TARGET ----
-#add_executable(runTests
-#        # Test files
-#        tests/binarytree_tests.cpp
-#        tests/redblacktree_unittest.cpp
-#        tests/api_unittest.cpp
-#        tests/memtable_unittest.cpp
-#        tests/sstIndex_unittest.cpp
-#        tests/kvpair_unittest.cpp
-#        tests/file_manager_unittest.cpp
-#        tests/bufferpool_unittest.cpp
-#
-#        # Source files required by tests
-#        tree/BinaryTree.cpp
-#        tree/TreeNode.cpp
-#        tree/RedBlackTree.cpp
-#        api/api.cpp
-#        memtable/Memtable.cpp
-#        SSTIndex/SSTIndex.cpp
-#        FileManager/FileManager.cpp
-#        kv/KeyValue.cpp
-#        ${PROTO_SRCS}
-#        tests/treenode_unittests.cpp
-#        bufferPool/BufferPool.cpp
-#        bufferPool/BufferPool.h
-#        tree/BTree.cpp
-#        tree/BTree.h
-#        tests/bufferpool_unittest.cpp
-#)
+add_executable(runTests
+        # Test files
+        tests/binarytree_tests.cpp
+        tests/redblacktree_unittest.cpp
+        tests/memtable_unittest.cpp
+        tests/kvpair_unittest.cpp
+        tests/treenode_unittests.cpp
 
-## Link Google Test and OpenSSL to the test executable
-#target_link_libraries(runTests gtest gtest_main ${Protobuf_LIBRARIES})
-#
-## Register tests with CTest
-#add_test(NAME runTests COMMAND runTests)
+
+        # Source files required by tests
+        # kv
+        kv/KeyValue.cpp
+        kv/KeyValue.tpp
+        # Memory
+        Memory/Memtable/Memtable.cpp
+        # Tree
+        Tree/TreeNode/TreeNode.cpp
+        Tree/TreeNode/TreeNode.tpp
+        Tree/BinaryTree/BinaryTree.cpp
+        Tree/BinaryTree/BinaryTree.tpp
+        Tree/RedBlackTree/RedBlackTree.cpp
+        # Storage
+
+        ${PROTO_SRCS}
+
+)
+
+# Link Google Test and OpenSSL to the test executable
+target_link_libraries(runTests gtest gtest_main ${Protobuf_LIBRARIES})
+
+# Register tests with CTest
+add_test(NAME runTests COMMAND runTests)
 
 # ---- MAIN TARGET ----
 # List of source files
@@ -107,14 +102,19 @@ target_link_libraries(main ${Protobuf_LIBRARIES})
 
 # Include directories (header files)
 include_directories(
-#        ${PROJECT_SOURCE_DIR}/api
-#        ${PROJECT_SOURCE_DIR}/memtable
-#        ${PROJECT_SOURCE_DIR}/tree
-#        ${PROJECT_SOURCE_DIR}/SSTIndex
-#        ${PROJECT_SOURCE_DIR}/kv
-#        ${PROJECT_SOURCE_DIR}/FileManager
-#        ${PROJECT_SOURCE_DIR}/protobuf
-#        ${PROJECT_SOURCE_DIR}/bufferPool
+        ${PROJECT_SOURCE_DIR}/kv
+        ${PROJECT_SOURCE_DIR}/Memory/Memtable
+        ${PROJECT_SOURCE_DIR}/Memory/BufferPool
+        ${PROJECT_SOURCE_DIR}/Storage/BloomFilter
+        ${PROJECT_SOURCE_DIR}/Storage/Page
+        ${PROJECT_SOURCE_DIR}/Storage/PageManager
+        ${PROJECT_SOURCE_DIR}/Storage/SstFileManager
+        ${PROJECT_SOURCE_DIR}/Tree/BinaryTree
+        ${PROJECT_SOURCE_DIR}/Tree/BTree
+        ${PROJECT_SOURCE_DIR}/Tree/LSMTree
+        ${PROJECT_SOURCE_DIR}/Tree/RedBlackTree
+        ${PROJECT_SOURCE_DIR}/Tree/TreeNode
+        ${PROJECT_SOURCE_DIR}/VeloxDB
         ${CMAKE_CURRENT_BINARY_DIR}
         ${PROJECT_SOURCE_DIR}
 )

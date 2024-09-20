@@ -22,6 +22,7 @@ types using C++ Templates and Protocol Buffers.
 [Leaf Node Page m]
 [Clustered Index Page]
 [Bloom Filter Page]
+[SST Metadata Page]
 ```
 ### Page
 Page with `PageSize::` **PageSize** (`4KB`, `8KB`)
