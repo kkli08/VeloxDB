@@ -119,6 +119,6 @@ include_directories(
         ${PROJECT_SOURCE_DIR}
 )
 
-## Add the generated protobuf directory to the include path
-#include_directories(${GENERATED_PROTO_DIR})
+# Add the generated protobuf directory to the include path
+include_directories(${GENERATED_PROTO_DIR})
 
