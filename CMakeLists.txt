@@ -87,12 +87,12 @@ set(SOURCE_FILES
 #        tree/TreeNode.cpp
 #        tree/RedBlackTree.cpp
 #        SSTIndex/SSTIndex.cpp
-#        kv/KeyValue.cpp
+        kv/KeyValue.cpp
 #        FileManager/FileManager.cpp
 #        bufferPool/BufferPool.cpp
 #        bufferPool/BufferPool.h
-#        tree/BTree.cpp
-#        tree/BTree.h
+        Tree/BTree/BTree.cpp
+        Tree/BTree/BTree.h
 )
 
 # Add the executable

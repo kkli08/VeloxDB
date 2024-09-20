@@ -5,7 +5,7 @@
 #ifndef BTREE_H
 #define BTREE_H
 
-#include "KeyValueWrapper.h"
+#include "KeyValue.h"
 #include <vector>
 #include <string>
 
