@@ -65,6 +65,7 @@ add_executable(runTests
         Tree/BinaryTree/BinaryTree.tpp
         Tree/RedBlackTree/RedBlackTree.cpp
         # Storage
+        Storage/FileManager/FileManager.cpp
 
         ${PROTO_SRCS}
 
@@ -109,6 +110,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/Storage/Page
         ${PROJECT_SOURCE_DIR}/Storage/PageManager
         ${PROJECT_SOURCE_DIR}/Storage/SstFileManager
+        ${PROJECT_SOURCE_DIR}/Storage/FileManager
         ${PROJECT_SOURCE_DIR}/Tree/BinaryTree
         ${PROJECT_SOURCE_DIR}/Tree/BTree
         ${PROJECT_SOURCE_DIR}/Tree/LSMTree
