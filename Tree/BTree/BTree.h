@@ -18,7 +18,7 @@ public:
     void insert(const KeyValueWrapper& kv);
 
     // Search for a key in the B+ Tree
-    KeyValueWrapper* search(const std::string& key);
+    KeyValueWrapper* search(const KeyValueWrapper& kv);
 
     // Traverse and print the B+ Tree
     void traverse() const;
@@ -27,8 +27,7 @@ private:
     // B+ Tree node structure
     struct BTreeNode {
         bool isLeaf;                           // True if node is a leaf
-        std::vector<std::string> keys;         // Keys for internal nodes
-        std::vector<KeyValueWrapper> keyValues; // Key-value pairs for leaf nodes
+        std::vector<KeyValueWrapper> keys;     // Keys for internal nodes or key-value pairs for leaves
         std::vector<BTreeNode*> children;      // Child pointers
         BTreeNode* next;                       // Pointer to next leaf node
 
@@ -42,7 +41,7 @@ private:
         void splitChild(int idx, int degree);
 
         // Search for a key in the subtree rooted with this node
-        KeyValueWrapper* search(const std::string& key);
+        KeyValueWrapper* search(const KeyValueWrapper& kv);
 
         // Traverse the subtree rooted with this node
         void traverse() const;
