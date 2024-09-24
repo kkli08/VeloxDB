@@ -30,9 +30,9 @@ FileName
  *  4kb / 8kb chunk
  *  sorted by key
  */
-serialized key-value pair 1 metadata
-serialized key-value pair 2 metadata
-serialized key-value pair 3 metadata
+serialized key-value pair 1 metadata (serialized by protobuf)
+serialized key-value pair 2 metadata (serialized by protobuf)
+serialized key-value pair 3 metadata (serialized by protobuf)
 ...
 // with padding
 ```
@@ -43,9 +43,9 @@ serialized key-value pair 3 metadata
  *  4kb / 8kb chunk
  *  sorted by level
  */
-level#0 key_1, jump_offset_L1_K0, jump_offset_L1_K1
-level#1 key_1, jump_offset_L2_K0, jump_offset_L2_K1
-level#1 key_2, jump_offset_L2_K1, jump_offset_L2_K2
+level#0 key-value pair 0 metadata (serialized by protobuf), jump_offset_L1_K0, jump_offset_L1_K1
+level#1 key-value pair 1 metadata (serialized by protobuf), jump_offset_L2_K0, jump_offset_L2_K1
+level#1 key-value pair 2 metadata (serialized by protobuf), jump_offset_L2_K1, jump_offset_L2_K2
 ...
 // with padding
 ```

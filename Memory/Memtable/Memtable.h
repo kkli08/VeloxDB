@@ -7,6 +7,7 @@
 #include "RedBlackTree.h"
 #include <filesystem> // C++17 lib
 #include "FileManager.h"
+#include "BTree.h"
 namespace fs = std::filesystem;
 using namespace std;
 
@@ -38,6 +39,7 @@ class Memtable {
         FileManager file_manager;
 
     private:
+        BTree* btree;
         RedBlackTree* tree;
         int memtable_size; // maximum size of memtable
         int current_size = 0;
