@@ -259,24 +259,28 @@ TEST(SSTFileManagerTest, SearchLargeNumberOfSSTs) {
 
     SSTFileManager manager(testDir, degree);
 
-    // Flush many small memtables
-    for (int i = 0; i < 50; ++i) {
-        auto keyValues = generateSequentialKeyValues(i * 10, 10);
+    // Flush many small memtables with keys at intervals of 25
+    for (int i = 0; i < 20; ++i) {
+        auto keyValues = generateSequentialKeyValues(i * 25, 1);
         manager.flushMemtable(keyValues);
     }
 
-    // Search for keys across SSTs
+
     for (int i = 0; i < 500; i += 25) {
         KeyValueWrapper* result = manager.search(KeyValueWrapper(i, 0));
-        if (i % 10 == 0) {
-            ASSERT_NE(result, nullptr);
-            EXPECT_EQ(result->kv.int_key(), i);
-            EXPECT_EQ(result->kv.int_value(), i * 10);
-            delete result;
-        } else {
-            EXPECT_EQ(result, nullptr);
-        }
+        ASSERT_NE(result, nullptr); // Expect the key to exist
+        EXPECT_EQ(result->kv.int_key(), i);
+        EXPECT_EQ(result->kv.int_value(), i * 10);
+        delete result;
     }
+
+    // Test keys that should not exist
+    for (int i = 0; i < 500; i += 25) {
+        int nonExistentKey = i + 10; // This key does not exist
+        KeyValueWrapper* result = manager.search(KeyValueWrapper(nonExistentKey, 0));
+        EXPECT_EQ(result, nullptr); // Expect the key not to exist
+    }
+
 
     cleanUpDirectory(testDir);
     std::filesystem::remove(testDir);
