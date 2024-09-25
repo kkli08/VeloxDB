@@ -210,3 +210,9 @@ The KV-Store system has been tested across multiple platforms and compilers. Bel
 | Ubuntu ARM64 | GCC            | ✅     |
 | Ubuntu ARM64 | Clang          | ✅     |
 | Windows x86  | MSVC (cl)      | ✅     |
+
+### Legacy Repo
+
+[KvDB](https://github.com/kkli08/KvDB)
+
+[KV-Store](https://github.com/kkli08/KV-Store)
