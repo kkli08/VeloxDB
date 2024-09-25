@@ -12,9 +12,15 @@
 #include <sstream>
 #include <algorithm>
 
+namespace fs = std::filesystem;
+
 // Constructor
 SSTFileManager::SSTFileManager(const std::string& dbDirectory, int degree)
     : dbDirectory(dbDirectory), degree(degree) {
+    // Ensure the database directory exists
+    if (!fs::exists(dbDirectory)) {
+        fs::create_directories(dbDirectory);
+    }
     // Initialize by loading existing SST files if any
     for (const auto& entry : std::filesystem::directory_iterator(dbDirectory)) {
         if (entry.path().extension() == ".sst") {

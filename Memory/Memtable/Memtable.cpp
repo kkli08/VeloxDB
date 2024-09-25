@@ -57,12 +57,14 @@ fs::path Memtable::getPath() const {
 
 // Insert a key-value pair into the memtable
 void Memtable::put(const KeyValueWrapper& kv) {
-    // Insert into the in-memory RedBlackTree
-    tree->insert(kv);
-    currentSize++;
+    if(currentSize <= memtableSize) {
+        // Insert into the in-memory RedBlackTree
+        tree->insert(kv);
+        currentSize++;
+    }
 
     // Check if the memtable size limit is reached
-    if (currentSize >= memtableSize) {
+    if (currentSize > memtableSize) {
         // Flush to SST file
         flushToDisk();
 
@@ -70,14 +72,16 @@ void Memtable::put(const KeyValueWrapper& kv) {
         delete tree;
         tree = new RedBlackTree();
         currentSize = 0;
+        // Insert into the in-memory RedBlackTree
+        tree->insert(kv);
+        currentSize++;
     }
 }
 
 // Get a key-value pair from the memtable
 KeyValueWrapper Memtable::get(const KeyValueWrapper& kv) {
     // Search only in the in-memory RedBlackTree
-    KeyValueWrapper result = tree->getValue(kv);
-    return result;
+    return tree->getValue(kv);
 }
 
 // Scan the memtable for keys within a range
