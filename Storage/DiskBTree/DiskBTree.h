@@ -78,7 +78,6 @@ private:
     KeyValueWrapper* searchInNode(uint64_t nodeOffset, const KeyValueWrapper& kv);
     void scanInNode(uint64_t nodeOffset, const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result);
 
-    // Other private methods...
 };
 
 #endif // DISK_BTREE_H

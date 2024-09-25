@@ -80,6 +80,7 @@ add_executable(runTests
         tests/page_unittests.cpp
         tests/page_manager_unittest.cpp
         tests/DiskBTree_unittest.cpp
+        tests/SST_File_Manager_unittest.cpp
 
 )
 

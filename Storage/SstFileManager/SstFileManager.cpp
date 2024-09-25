@@ -26,15 +26,18 @@ SSTFileManager::SSTFileManager(const std::string& dbDirectory, int degree)
 
 // Flush memtable to SST file
 void SSTFileManager::flushMemtable(const std::vector<KeyValueWrapper>& keyValues) {
-    // Sort the keyValues
-    auto sortedKeyValues = keyValues;
-    std::sort(sortedKeyValues.begin(), sortedKeyValues.end());
+    // // Sort the keyValues
+    // auto sortedKeyValues = keyValues;
+    // std::sort(sortedKeyValues.begin(), sortedKeyValues.end());
+
+    // no data to flush
+    if(keyValues.empty()) return;
 
     // Generate a new SST file name
     std::string sstFileName = generateSSTFileName();
 
     // Create a new DiskBTree instance for the SST file
-    auto sst = std::make_shared<DiskBTree>(sstFileName, degree, sortedKeyValues);
+    auto sst = std::make_shared<DiskBTree>(sstFileName, degree, keyValues);
 
     // Add the new SST to the list
     sstFiles.push_back(sst);
