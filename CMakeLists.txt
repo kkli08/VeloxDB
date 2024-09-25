@@ -64,10 +64,20 @@ add_executable(runTests
         Tree/BinaryTree/BinaryTree.cpp
         Tree/BinaryTree/BinaryTree.tpp
         Tree/RedBlackTree/RedBlackTree.cpp
+        Tree/BTree/BTree.cpp
         # Storage
         Storage/FileManager/FileManager.cpp
 
         ${PROTO_SRCS}
+        Storage/Page/Page.cpp
+        Storage/Page/Page.h
+        Storage/PageManager/PageManager.cpp
+        Storage/PageManager/PageManager.h
+        Storage/DiskBTree/DiskBTree.cpp
+        Storage/DiskBTree/DiskBTree.h
+        Storage/SstFileManager/SstFileManager.cpp
+        Storage/SstFileManager/SstFileManager.h
+        tests/page_unittests.cpp
 
 )
 
@@ -81,18 +91,23 @@ add_test(NAME runTests COMMAND runTests)
 # List of source files
 set(SOURCE_FILES
         main.cpp
-#        api/api.cpp
-#        memtable/Memtable.cpp
-#        tree/BinaryTree.cpp
-#        tree/TreeNode.cpp
-#        tree/RedBlackTree.cpp
-#        SSTIndex/SSTIndex.cpp
+        Memory/Memtable/Memtable.cpp
+
         kv/KeyValue.cpp
-#        FileManager/FileManager.cpp
-#        bufferPool/BufferPool.cpp
-#        bufferPool/BufferPool.h
+
         Tree/BTree/BTree.cpp
         Tree/BTree/BTree.h
+        Tree/RedBlackTree/RedBlackTree.cpp
+        Tree/TreeNode/TreeNode.cpp
+        Tree/BinaryTree/BinaryTree.cpp
+        Storage/Page/Page.cpp
+        Storage/Page/Page.h
+        Storage/PageManager/PageManager.cpp
+        Storage/PageManager/PageManager.h
+        Storage/DiskBTree/DiskBTree.cpp
+        Storage/DiskBTree/DiskBTree.h
+        Storage/SstFileManager/SstFileManager.cpp
+        Storage/SstFileManager/SstFileManager.h
 )
 
 # Add the executable
@@ -111,6 +126,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/Storage/PageManager
         ${PROJECT_SOURCE_DIR}/Storage/SstFileManager
         ${PROJECT_SOURCE_DIR}/Storage/FileManager
+        ${PROJECT_SOURCE_DIR}/Storage/DiskBTree
         ${PROJECT_SOURCE_DIR}/Tree/BinaryTree
         ${PROJECT_SOURCE_DIR}/Tree/BTree
         ${PROJECT_SOURCE_DIR}/Tree/LSMTree

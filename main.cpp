@@ -2,31 +2,39 @@
 // Created by Damian Li on 2024-09-20.
 //
 
-#include "BTree.h"
+#include "DiskBTree.h"
 #include "KeyValue.h"
+#include "Memtable.h"
 
 int main() {
-  BTree tree(3); // B+ Tree of degree 3
+    Memtable memtable(5); // Memtable threshold set to 5 for testing
 
-  // Insert some key-value pairs with different key types
-  tree.insert(KeyValueWrapper(10, "value1"));            // int key
-  tree.insert(KeyValueWrapper(20LL, "value2"));          // long key
-  tree.insert(KeyValueWrapper(15.5, "value3"));          // double key
-  tree.insert(KeyValueWrapper('a', "value4"));           // char key
-  tree.insert(KeyValueWrapper(std::string("key5"), 5));  // string key
+    // Insert key-value pairs
+    memtable.put(KeyValueWrapper(10, "value1"));
+    memtable.put(KeyValueWrapper(20, "value2"));
+    memtable.put(KeyValueWrapper(5, "value3"));
+    memtable.put(KeyValueWrapper(6, "value4"));
+    memtable.put(KeyValueWrapper(12, "value5"));
 
-  // Traverse the tree
-  tree.traverse();
+    // The memtable should flush to disk here due to threshold
 
-  // Search for a key
-  KeyValueWrapper searchKey(15.5, ""); // We only need to set the key for searching
-  KeyValueWrapper* result = tree.search(searchKey);
-  if (result != nullptr) {
-    std::cout << "Found: ";
-    result->printKeyValue();
-  } else {
-    std::cout << "Key not found." << std::endl;
-  }
+    // memtable.put(KeyValueWrapper(30, "value6"));
 
-  return 0;
+    // Get a value
+    // KeyValueWrapper result = memtable.get(KeyValueWrapper(12, ""));
+    // if (!result.isEmpty()) {
+    //     std::cout << "Found: ";
+    //     result.printKeyValue();
+    // } else {
+    //     std::cout << "Key not found." << std::endl;
+    // }
+
+    // // Scan a range
+    // std::set<KeyValueWrapper> scanResult;
+    // memtable.Scan(KeyValueWrapper(5, ""), KeyValueWrapper(20, ""), scanResult);
+    // for (const auto& kv : scanResult) {
+    //     kv.printKeyValue();
+    // }
+
+    return 0;
 }

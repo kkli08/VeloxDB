@@ -28,6 +28,19 @@ bool KeyValueWrapper::isEmpty() const {
 
 // Comparison operator
 bool KeyValueWrapper::operator<(const KeyValueWrapper& other) const {
+    // Handle case where either key is not set
+    if (kv.key_case() == KeyValue::KEY_NOT_SET || other.kv.key_case() == KeyValue::KEY_NOT_SET) {
+        // Define comparison policy
+        if (kv.key_case() == KeyValue::KEY_NOT_SET && other.kv.key_case() != KeyValue::KEY_NOT_SET) {
+            return true; // Consider not set as less than any set key
+        }
+        if (kv.key_case() != KeyValue::KEY_NOT_SET && other.kv.key_case() == KeyValue::KEY_NOT_SET) {
+            return false; // Any set key is greater than not set
+        }
+        // Both keys are not set, consider them equal
+        return false;
+    }
+
     // Handle mixed numeric-type comparisons by casting both to double
     if ((kv.key_case() == KeyValue::kIntKey || kv.key_case() == KeyValue::kLongKey || kv.key_case() == KeyValue::kDoubleKey) &&
         (other.kv.key_case() == KeyValue::kIntKey || other.kv.key_case() == KeyValue::kLongKey || other.kv.key_case() == KeyValue::kDoubleKey)) {
@@ -39,7 +52,7 @@ bool KeyValueWrapper::operator<(const KeyValueWrapper& other) const {
                           (other.kv.key_case() == KeyValue::kLongKey) ? other.kv.long_key() :
                           other.kv.double_key();
         return thisKey < otherKey;
-        }
+    }
 
     // Handle comparison between numeric (int, long, double) and char/string types
     switch (kv.key_case()) {
@@ -73,8 +86,6 @@ bool KeyValueWrapper::operator<(const KeyValueWrapper& other) const {
             throw std::invalid_argument("KeyValueWrapper::operator<() : Line 73 : Unsupported key type for comparison.");
     }
 
-
-
     // Handle same-type comparisons
     switch (kv.key_case()) {
         case KeyValue::kIntKey:
@@ -91,6 +102,7 @@ bool KeyValueWrapper::operator<(const KeyValueWrapper& other) const {
             throw std::invalid_argument("KeyValueWrapper::operator<() : Line 91 : Invalid key type for comparison.");
     }
 }
+
 
 
 
