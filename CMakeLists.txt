@@ -81,6 +81,10 @@ add_executable(runTests
         tests/page_manager_unittest.cpp
         tests/DiskBTree_unittest.cpp
         tests/SST_File_Manager_unittest.cpp
+        VeloxDB/VeloxDB.h
+        VeloxDB/VeloxDB.cpp
+        VeloxDB/VeloxDB.tpp
+        tests/VeloxDB_api_unittest.cpp
 
 )
 
@@ -111,6 +115,9 @@ set(SOURCE_FILES
         Storage/DiskBTree/DiskBTree.h
         Storage/SstFileManager/SstFileManager.cpp
         Storage/SstFileManager/SstFileManager.h
+        VeloxDB/VeloxDB.h
+        VeloxDB/VeloxDB.cpp
+        VeloxDB/VeloxDB.tpp
 )
 
 # Add the executable

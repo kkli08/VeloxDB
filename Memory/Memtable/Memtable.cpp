@@ -10,12 +10,13 @@
 #include <algorithm>
 
 // Default Constructor
-Memtable::Memtable()
+Memtable::Memtable(std::shared_ptr<SSTFileManager> sstFileManager)
     : memtableSize(10000), // Default threshold
       currentSize(0),
       tree(new RedBlackTree()),
       dbPath("defaultDB"),
-      sstFileManager("defaultDB", /*degree=*/3) {
+      sstFileManager(sstFileManager) {
+    // std::cout << "Memtable initialized with threshold: " << 1e4 << std::endl;
     // Ensure the database directory exists
     if (!fs::exists(dbPath)) {
         fs::create_directories(dbPath);
@@ -23,12 +24,13 @@ Memtable::Memtable()
 }
 
 // Constructor with threshold
-Memtable::Memtable(int threshold)
+Memtable::Memtable(int threshold, std::shared_ptr<SSTFileManager> sstFileManager)
     : memtableSize(threshold),
       currentSize(0),
       tree(new RedBlackTree()),
       dbPath("defaultDB"),
-      sstFileManager("defaultDB", /*degree=*/3) {
+      sstFileManager(sstFileManager) {
+    // std::cout << "Memtable initialized with threshold: " << threshold << std::endl;
     // Ensure the database directory exists
     if (!fs::exists(dbPath)) {
         fs::create_directories(dbPath);
@@ -47,7 +49,7 @@ void Memtable::setPath(const fs::path& _dbPath) {
         fs::create_directories(dbPath);
     }
     // Update the SSTFileManager's directory
-    sstFileManager = SSTFileManager(dbPath.string(), /*degree=*/3);
+    sstFileManager->setPath(dbPath);
 }
 
 // Get the database path
@@ -57,25 +59,24 @@ fs::path Memtable::getPath() const {
 
 // Insert a key-value pair into the memtable
 void Memtable::put(const KeyValueWrapper& kv) {
-    if(currentSize <= memtableSize) {
+    // std::cout << "Inserting key: " << kv.kv.int_key() << " into memtable." << std::endl;
+    if (currentSize < memtableSize) {
         // Insert into the in-memory RedBlackTree
         tree->insert(kv);
         currentSize++;
-    }
-
-    // Check if the memtable size limit is reached
-    if (currentSize > memtableSize) {
-        // Flush to SST file
+    } else {
+        // std::cout << "Memtable size exceeded. Flushing to disk." << std::endl;
+        // Flush to SST file when threshold is reached
         flushToDisk();
-
-        // Reset the memtable
         delete tree;
         tree = new RedBlackTree();
         currentSize = 0;
-        // Insert into the in-memory RedBlackTree
+
+        // Insert the current key after flush
         tree->insert(kv);
         currentSize++;
     }
+
 }
 
 // Get a key-value pair from the memtable
@@ -100,8 +101,9 @@ void Memtable::flushToDisk() {
         kvPairs.push_back(kv);
     });
 
+    // std::cout << "Flushing " << kvPairs.size() << " key-value pairs to disk." << std::endl;
     // Flush to SST file using SSTFileManager
-    sstFileManager.flushMemtable(kvPairs);
+    sstFileManager->flushMemtable(kvPairs);
 }
 
 

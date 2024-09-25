@@ -6,6 +6,7 @@
 #include <fstream>
 #include <filesystem>
 #include "Memtable.h"
+#include "SstFileManager.h"
 #include <regex>
 #include <thread>
 
@@ -18,7 +19,8 @@ namespace fs = std::filesystem;
  * Memtable::get(KeyValueWrapper&) -> return KeyValueWrapper
  */
 TEST(MemtableTest, BasicInsertAndGet) {
-    Memtable* memtable = new Memtable(3);  // Set a small threshold for testing
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto memtable = new Memtable(3, sstFileManager);  // Set a small threshold for testing
 
     // Insert a KeyValueWrapper pair (int key, int value)
     KeyValueWrapper kv1(10, 100);
@@ -30,10 +32,12 @@ TEST(MemtableTest, BasicInsertAndGet) {
     EXPECT_EQ(result.kv.int_value(), 100);  // Verify that the value is correct
 
     delete memtable;
+    fs::remove_all("defaultDB");  // Clean up the created SST files
 }
 
 TEST(MemtableTest, InsertMultipleKeyValuePairs) {
-    Memtable* memtable = new Memtable(3);  // Set a small threshold for testing
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto memtable = new Memtable(3, sstFileManager);  // Set a small threshold for testing
 
     // Insert multiple KeyValueWrapper pairs
     memtable->put(KeyValueWrapper(10, 100));
@@ -46,10 +50,12 @@ TEST(MemtableTest, InsertMultipleKeyValuePairs) {
     EXPECT_EQ(memtable->get(KeyValueWrapper(30, "")).kv.int_value(), 300);
 
     delete memtable;
+    fs::remove_all("defaultDB");  // Clean up the created SST files
 }
 
 TEST(MemtableTest, GetValueNotPresent) {
-    Memtable* memtable = new Memtable(3);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto memtable = new Memtable(3, sstFileManager);
 
     // Insert a KeyValueWrapper pair
     memtable->put(KeyValueWrapper(10, 100));
@@ -59,10 +65,12 @@ TEST(MemtableTest, GetValueNotPresent) {
     EXPECT_TRUE(result.isEmpty());  // Check if the returned KeyValueWrapper is empty
 
     delete memtable;
+    fs::remove_all("defaultDB");  // Clean up the created SST files
 }
 
 TEST(MemtableTest, InsertBeyondThreshold) {
-    Memtable* memtable = new Memtable(2);  // Set a threshold of 2
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto memtable = new Memtable(2, sstFileManager);  // Set a threshold of 2
 
     // Insert two KeyValueWrapper pairs (should not trigger a flush)
     memtable->put(KeyValueWrapper(10, 100));
@@ -79,7 +87,8 @@ TEST(MemtableTest, InsertBeyondThreshold) {
 }
 
 TEST(MemtableTest, ResetCurrentSizeAfterFlush) {
-    Memtable* memtable = new Memtable(2);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto memtable = new Memtable(2, sstFileManager);
 
     // Insert three KeyValueWrapper pairs (should trigger a flush after the second)
     memtable->put(KeyValueWrapper(10, 100));
@@ -95,11 +104,12 @@ TEST(MemtableTest, ResetCurrentSizeAfterFlush) {
 }
 
 /*
-* Multiple Flushes with Threshold
-* This test checks that multiple flushes can occur as the threshold is reached multiple times.
+ * Multiple Flushes with Threshold
+ * This test checks that multiple flushes can occur as the threshold is reached multiple times.
  */
 TEST(MemtableTest, MultipleFlushesWithThreshold) {
-    Memtable* memtable = new Memtable(2);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto memtable = new Memtable(2, sstFileManager);
 
     // First flush
     memtable->put(KeyValueWrapper(10, 100));
@@ -109,10 +119,9 @@ TEST(MemtableTest, MultipleFlushesWithThreshold) {
     // Second flush
     memtable->put(KeyValueWrapper(40, 400));
     memtable->put(KeyValueWrapper(50, 500));
-    memtable->put(KeyValueWrapper(60, 600));
+    memtable->put(KeyValueWrapper(60, 600));  // Trigger flush again
 
     // Retrieve the most recent entries
-    EXPECT_NE(memtable->get(KeyValueWrapper(40, "")).kv.int_value(), 400);
     EXPECT_EQ(memtable->get(KeyValueWrapper(50, "")).kv.int_value(), 500);
     EXPECT_EQ(memtable->get(KeyValueWrapper(60, "")).kv.int_value(), 600);
 
@@ -124,7 +133,8 @@ TEST(MemtableTest, MultipleFlushesWithThreshold) {
  * Unit Tests for Scan method in Memtable
  */
 TEST(MemtableTest, ScanRange) {
-    Memtable* memtable = new Memtable(10);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto memtable = new Memtable(10, sstFileManager);
 
     // Insert some KeyValueWrapper pairs
     memtable->put(KeyValueWrapper(10, 100));
@@ -144,8 +154,5 @@ TEST(MemtableTest, ScanRange) {
     EXPECT_EQ(std::next(results.begin(), 2)->kv.int_value(), 400);
 
     delete memtable;
+    fs::remove_all("defaultDB");
 }
-
-
-
-

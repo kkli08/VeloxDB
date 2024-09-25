@@ -37,6 +37,9 @@ public:
     // Get the SST file name
     std::string getFileName() const;
 
+    // set degree
+    void setDegree(int _degree) {degree = _degree;};
+
 private:
     // B+ tree degree
     int degree;

@@ -19,8 +19,8 @@ namespace fs = std::filesystem;
 class Memtable {
 public:
     // Constructors and Destructor
-    Memtable();
-    explicit Memtable(int threshold);
+    Memtable(std::shared_ptr<SSTFileManager> sstFileManager);
+    explicit Memtable(int threshold, std::shared_ptr<SSTFileManager> sstFileManager);
     ~Memtable();
 
     // Set and get the database path
@@ -39,6 +39,12 @@ public:
     // Flush the memtable to disk (SST file)
     void flushToDisk();
 
+    // set sstFileManager degree
+    void setSstFileManager_BTree_Degree(int degree) {sstFileManager->setDegree(degree);};
+
+    // get current size
+    int get_currentSize() const {return currentSize;};
+
 private:
     // In-memory Red-Black Tree
     RedBlackTree* tree;
@@ -53,7 +59,7 @@ private:
     fs::path dbPath;
 
     // SSTFileManager for flushing to disk
-    SSTFileManager sstFileManager;
+    std::shared_ptr<SSTFileManager> sstFileManager;
 };
 
 #endif // MEMTABLE_H

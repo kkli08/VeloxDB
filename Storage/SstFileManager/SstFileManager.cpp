@@ -17,6 +17,7 @@ namespace fs = std::filesystem;
 // Constructor
 SSTFileManager::SSTFileManager(const std::string& dbDirectory, int degree)
     : dbDirectory(dbDirectory), degree(degree) {
+    // std::cout << "SSTFileManager initialized with directory: " << dbDirectory << " and degree: " << degree << std::endl;
     // Ensure the database directory exists
     if (!fs::exists(dbDirectory)) {
         fs::create_directories(dbDirectory);
@@ -47,6 +48,7 @@ void SSTFileManager::flushMemtable(const std::vector<KeyValueWrapper>& keyValues
 
     // Add the new SST to the list
     sstFiles.push_back(sst);
+    // std::cout << "Created SST file: " << sstFileName << " with " << keyValues.size() << " key-value pairs." << std::endl;
 }
 
 // Generate a new SST file name
@@ -71,18 +73,25 @@ KeyValueWrapper* SSTFileManager::search(const KeyValueWrapper& kv) {
 
 // Scan keys within a range across all SST files
 void SSTFileManager::scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result) {
-    std::vector<KeyValueWrapper> tempResult;
-    for (const auto& sst : sstFiles) {
-        sst->scan(startKey, endKey, tempResult);
+    std::set<KeyValueWrapper> tempResultSet;  // Using set to handle duplicates automatically based on key comparison
+
+    // Scan each SST file from newest to oldest
+    std::cout << "Scanning across " << sstFiles.size() << " SST files." << std::endl;
+    for (auto it = sstFiles.rbegin(); it != sstFiles.rend(); ++it) {
+        std::vector<KeyValueWrapper> tempResult;
+        (*it)->scan(startKey, endKey, tempResult);
+
+        // Insert all key-value pairs into the tempResultSet, which handles duplicates automatically
+        for (const auto& kv : tempResult) {
+            tempResultSet.insert(kv);
+        }
     }
 
-    // Remove duplicates and resolve conflicts
-    std::sort(tempResult.begin(), tempResult.end());
-    auto last = std::unique(tempResult.begin(), tempResult.end());
-    tempResult.erase(last, tempResult.end());
-
-    result = std::move(tempResult);
+    // Convert set back to vector (as required by your API)
+    result.assign(tempResultSet.begin(), tempResultSet.end());
+    std::cout << "Scan completed with " << result.size() << " key-value pairs found." << std::endl;
 }
+
 
 
 
