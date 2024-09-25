@@ -2,6 +2,10 @@
 // Created by Damian Li on 2024-08-26.
 //
 
+//
+// Memtable.h
+//
+
 #ifndef MEMTABLE_H
 #define MEMTABLE_H
 
@@ -14,24 +18,45 @@ namespace fs = std::filesystem;
 
 class Memtable {
 public:
+    // Constructors and Destructor
     Memtable();
-    Memtable(int threshold);
+    explicit Memtable(int threshold);
     ~Memtable();
 
-    void set_path(fs::path);
-    fs::path get_path();
+    // Set and get the database path
+    void setPath(const fs::path& dbPath);
+    fs::path getPath() const;
 
-    void Scan(const KeyValueWrapper& small_key, const KeyValueWrapper& large_key, std::set<KeyValueWrapper>& res);
-    KeyValueWrapper put(const KeyValueWrapper& kv);
+    // Insert a key-value pair into the memtable
+    void put(const KeyValueWrapper& kv);
+
+    // Get a key-value pair from the memtable
     KeyValueWrapper get(const KeyValueWrapper& kv);
 
+    // Scan the memtable for keys within a range
+    void scan(const KeyValueWrapper& smallKey, const KeyValueWrapper& largeKey, std::set<KeyValueWrapper>& res);
+
+    // Flush the memtable to disk (SST file)
+    void flushToDisk();
+
 private:
+    // In-memory Red-Black Tree
     RedBlackTree* tree;
-    int memtable_size;
-    int current_size = 0;
-    fs::path path;
-    SstFileManager sstFileManager;
+
+    // Threshold for flushing memtable to disk
+    int memtableSize;
+
+    // Current number of entries in the memtable
+    int currentSize;
+
+    // Database path
+    fs::path dbPath;
+
+    // SSTFileManager for flushing to disk
+    SSTFileManager sstFileManager;
 };
 
 #endif // MEMTABLE_H
+
+
 

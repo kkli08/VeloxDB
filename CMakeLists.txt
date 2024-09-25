@@ -78,6 +78,7 @@ add_executable(runTests
         Storage/SstFileManager/SstFileManager.cpp
         Storage/SstFileManager/SstFileManager.h
         tests/page_unittests.cpp
+        tests/page_manager_unittest.cpp
 
 )
 

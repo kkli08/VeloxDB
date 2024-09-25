@@ -2,54 +2,49 @@
 // Created by damian on 9/24/24.
 //
 
-#ifndef SSTFILEMANAGER_H
-#define SSTFILEMANAGER_H
+//
+// SSTFileManager.h
+//
+
+#ifndef SST_FILE_MANAGER_H
+#define SST_FILE_MANAGER_H
 
 #include "DiskBTree.h"
-#include "KeyValue.h"
-#include <filesystem>
-#include <vector>
 #include <string>
+#include <vector>
 #include <memory>
 
-namespace fs = std::filesystem;
-
-struct FlushSSTInfo {
-    std::string fileName;
-    KeyValueWrapper smallest_key;
-    KeyValueWrapper largest_key;
-};
-
-class SstFileManager {
+class SSTFileManager {
 public:
-    // Constructors
-    SstFileManager();
-    explicit SstFileManager(fs::path directory);
+    // Constructor
+    SSTFileManager(const std::string& dbDirectory, int degree);
 
-    // Flush data to disk as an SST file
-    FlushSSTInfo flushToDisk(const std::vector<KeyValueWrapper>& kv_pairs);
+    // Flush memtable to SST file
+    void flushMemtable(const std::vector<KeyValueWrapper>& keyValues);
 
-    // Search for a key in all SST files
-    KeyValueWrapper search(const KeyValueWrapper& key);
+    // Search for a key across all SST files
+    KeyValueWrapper* search(const KeyValueWrapper& kv);
 
-    // Scan over a range of keys in all SST files
+    // Scan keys within a range across all SST files
     void scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result);
 
-    // Set and get directory for SST files
-    void setDirectory(const fs::path& path);
-    fs::path getDirectory() const;
-
-    // Generate a unique SST file name
-    std::string generateSstFilename();
-
 private:
-    fs::path directory;
-    int sstFileCounter = 0;
+    // Directory where SST files are stored
+    std::string dbDirectory;
+
+    // B-tree degree
+    int degree;
+
+    // List of SST files (DiskBTree instances)
     std::vector<std::shared_ptr<DiskBTree>> sstFiles;
 
-    // Load existing SST files from disk
-    void loadSSTFiles();
+    // Method to generate new SST file names
+    std::string generateSSTFileName();
+
+    // Other private methods...
 };
 
-#endif // SSTFILEMANAGER_H
+#endif // SST_FILE_MANAGER_H
+
+
 
