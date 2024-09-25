@@ -16,7 +16,6 @@
 SSTFileManager::SSTFileManager(const std::string& dbDirectory, int degree)
     : dbDirectory(dbDirectory), degree(degree) {
     // Initialize by loading existing SST files if any
-    // For simplicity, assume SST files are named in a way we can identify
     for (const auto& entry : std::filesystem::directory_iterator(dbDirectory)) {
         if (entry.path().extension() == ".sst") {
             auto sst = std::make_shared<DiskBTree>(entry.path().string(), degree);
@@ -43,7 +42,7 @@ void SSTFileManager::flushMemtable(const std::vector<KeyValueWrapper>& keyValues
 
 // Generate a new SST file name
 std::string SSTFileManager::generateSSTFileName() {
-    // Use timestamp or a counter for uniqueness
+    // Use timestamp for uniqueness
     auto now = std::chrono::system_clock::now().time_since_epoch().count();
     std::ostringstream oss;
     oss << dbDirectory << "/sst_" << now << ".sst";
@@ -63,14 +62,17 @@ KeyValueWrapper* SSTFileManager::search(const KeyValueWrapper& kv) {
 
 // Scan keys within a range across all SST files
 void SSTFileManager::scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result) {
+    std::vector<KeyValueWrapper> tempResult;
     for (const auto& sst : sstFiles) {
-        sst->scan(startKey, endKey, result);
+        sst->scan(startKey, endKey, tempResult);
     }
 
-    // Remove duplicates and resolve conflicts (if any)
-    // For simplicity, assume that newer SST files override older ones
-    std::sort(result.begin(), result.end());
-    result.erase(std::unique(result.begin(), result.end()), result.end());
+    // Remove duplicates and resolve conflicts
+    std::sort(tempResult.begin(), tempResult.end());
+    auto last = std::unique(tempResult.begin(), tempResult.end());
+    tempResult.erase(last, tempResult.end());
+
+    result = std::move(tempResult);
 }
 
 

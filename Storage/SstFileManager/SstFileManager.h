@@ -32,7 +32,7 @@ private:
     // Directory where SST files are stored
     std::string dbDirectory;
 
-    // B-tree degree
+    // B+ tree degree
     int degree;
 
     // List of SST files (DiskBTree instances)
@@ -45,6 +45,7 @@ private:
 };
 
 #endif // SST_FILE_MANAGER_H
+
 
 
 

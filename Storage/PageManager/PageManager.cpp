@@ -8,7 +8,7 @@
 
 // Constructor
 PageManager::PageManager(const std::string& fileName, size_t pageSize)
-    : fileName(fileName), pageSize(pageSize), nextPageOffset(0) {
+    : fileName(fileName), pageSize(pageSize) {
     openFile();
     // Move to the end to find the next available offset
     file.seekg(0, std::ios::end);
@@ -16,7 +16,13 @@ PageManager::PageManager(const std::string& fileName, size_t pageSize)
     if (nextPageOffset % pageSize != 0) {
         nextPageOffset += pageSize - (nextPageOffset % pageSize);
     }
+    // If the file is empty, set nextPageOffset to pageSize to skip metadata page at offset 0
+    if (nextPageOffset == 0) {
+        nextPageOffset = pageSize;
+    }
 }
+
+
 
 // Destructor
 PageManager::~PageManager() {

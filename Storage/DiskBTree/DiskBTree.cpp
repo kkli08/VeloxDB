@@ -10,20 +10,45 @@
 #include <stdexcept>
 #include <algorithm>
 
-// Constructor for building a new B-tree from memtable data
+// Constructor for building a new B+ tree from memtable data
 DiskBTree::DiskBTree(const std::string& sstFileName, int degree, const std::vector<KeyValueWrapper>& keyValues)
     : degree(degree), pageManager(sstFileName), sstFileName(sstFileName) {
-    // Build the B-tree from the sorted key-values
-    buildTree(keyValues);
-    // Write metadata (root offset)
-    writeMetadata();
+    // Check for valid degree (must be > 0)
+    if (degree <= 0) {
+        throw std::invalid_argument("B+ tree degree must be greater than zero.");
+    }
+    // Write placeholder metadata to offset 0
+    Page metadataPage(Page::PageType::SST_METADATA);
+    pageManager.writePage(0, metadataPage); // Reserve offset 0
+
+    // Build the B+ tree from the sorted key-values
+    auto rootNode = buildTree(keyValues);
+
+    // Write the tree nodes to disk starting from the root
+    rootNode->writeNode(this);
+
+    // Set the root offset
+    rootOffset = rootNode->selfOffset;
+
+    // Update and write the metadata page with the actual root offset
+    metadataPage.setMetadata(rootOffset, 0, 0, sstFileName);
+    pageManager.writePage(0, metadataPage);
 }
+
+
 
 // Constructor for opening an existing SST file
 DiskBTree::DiskBTree(const std::string& sstFileName, int degree)
     : degree(degree), pageManager(sstFileName), sstFileName(sstFileName) {
+    // Check for valid degree (must be > 0)
+    if (degree <= 0) {
+        throw std::invalid_argument("B-tree degree must be greater than zero.");
+    }
     // Read the root offset from metadata
-    readMetadata();
+    Page metadataPage = pageManager.readPage(0);
+    uint64_t leafBegin, leafEnd;
+    std::string fileName;
+    metadataPage.getMetadata(rootOffset, leafBegin, leafEnd, fileName);
 }
 
 // Destructor
@@ -32,39 +57,256 @@ DiskBTree::~DiskBTree() {
     pageManager.close();
 }
 
-// Build the B-tree from sorted key-values
-void DiskBTree::buildTree(const std::vector<KeyValueWrapper>& keyValues) {
-    // Initialize an empty root node
-    BTreeNode rootNode(true, pageManager.allocatePage());
-    rootOffset = rootNode.selfOffset;
+// Build B+ tree from sorted key-values
+std::shared_ptr<DiskBTree::BTreeNode> DiskBTree::buildTree(const std::vector<KeyValueWrapper>& keyValues) {
+    // Create an empty root node
+    auto rootNode = std::make_shared<BTreeNode>(true);
 
-    // Insert all key-values into the B-tree
     for (const auto& kv : keyValues) {
-        if (rootNode.isFull(degree)) {
+        // // log
+        // std::cout << "Inserting key: " << kv.kv.int_key() << std::endl;
+        if (rootNode->keys.size() == 2 * degree - 1) {
             // Root is full, need to split
-            BTreeNode newRoot = allocateNode(false);
-            newRoot.childOffsets.push_back(rootNode.selfOffset);
-            newRoot.splitChild(0, degree, this);
+            auto newRoot = std::make_shared<BTreeNode>(false);
+            newRoot->children.push_back(rootNode);
+            newRoot->splitChild(0, degree);
             rootNode = newRoot;
-            rootOffset = newRoot.selfOffset;
         }
-        rootNode.insertNonFull(kv, degree, this);
+        rootNode->insertNonFull(kv, degree);
     }
 
-    // Write the root node to disk
-    writeNode(rootNode);
+    return rootNode;
 }
 
-// Search for a key in the B-tree
-KeyValueWrapper* DiskBTree::search(const KeyValueWrapper& kv) {
-    BTreeNode root = readNode(rootOffset);
-    return root.search(kv, this);
+// BTreeNode constructor
+DiskBTree::BTreeNode::BTreeNode(bool isLeaf)
+    : isLeaf(isLeaf), selfOffset(0) {}
+
+// Insert non-full
+void DiskBTree::BTreeNode::insertNonFull(const KeyValueWrapper& kv, int degree) {
+    int i = keys.size() - 1;
+    if (isLeaf) {
+        keys.push_back(kv); // Add space for new key
+        while (i >= 0 && kv < keys[i]) {
+            keys[i + 1] = keys[i]; // Shift keys to make room
+            --i;
+        }
+        keys[i + 1] = kv; // Insert new key
+    } else {
+        while (i >= 0 && kv < keys[i]) {
+            --i;
+        }
+        ++i;
+        // If the child is full, split it
+        if (children[i]->keys.size() == (2 * degree - 1)) {
+            splitChild(i, degree);
+            if (kv >= keys[i]) {
+                ++i;
+            }
+        }
+        children[i]->insertNonFull(kv, degree);
+    }
+
+    // // Logging
+    // if (isLeaf) {
+    //     std::cout << "Inserted key " << kv.kv.int_key() << " into leaf node with keys: ";
+    //     for (const auto& key : keys) {
+    //         std::cout << key.kv.int_key() << " ";
+    //     }
+    //     std::cout << std::endl;
+    // } else {
+    //     std::cout << "Inserting key " << kv.kv.int_key() << " into internal node with keys: ";
+    //     for (const auto& key : keys) {
+    //         std::cout << key.kv.int_key() << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 }
+
+
+
+
+// Split child node
+void DiskBTree::BTreeNode::splitChild(int idx, int degree) {
+    auto y = children[idx];
+    auto z = std::make_shared<BTreeNode>(y->isLeaf);
+
+    int t = degree;
+
+    if (y->isLeaf) {
+        // Move the last t keys from y to z
+        z->keys.assign(y->keys.begin() + t - 1, y->keys.end());
+        y->keys.resize(t - 1);
+
+        // Insert the first key of z into the parent
+        keys.insert(keys.begin() + idx, z->keys[0]);
+
+        // Since y is a leaf node, we don't remove the promoted key from z
+    } else {
+        // Move the last (t - 1) keys from y to z
+        z->keys.assign(y->keys.begin() + t, y->keys.end());
+        y->keys.resize(t);
+
+        // Move the last t children from y to z
+        z->children.assign(y->children.begin() + t, y->children.end());
+        y->children.resize(t);
+
+        // Promote the median key to the parent
+        keys.insert(keys.begin() + idx, y->keys[t - 1]);
+
+        // Remove the median key from y
+        y->keys.resize(t - 1);
+    }
+
+    // Insert new child into this node
+    children.insert(children.begin() + idx + 1, z);
+
+    // // Logging
+    // std::cout << "After splitting child at index " << idx << ":" << std::endl;
+    // std::cout << "Parent node keys: ";
+    // for (const auto& key : keys) {
+    //     std::cout << key.kv.int_key() << " ";
+    // }
+    // std::cout << std::endl;
+    // std::cout << "Left child keys: ";
+    // for (const auto& key : y->keys) {
+    //     std::cout << key.kv.int_key() << " ";
+    // }
+    // std::cout << std::endl;
+    // std::cout << "Right child keys: ";
+    // for (const auto& key : z->keys) {
+    //     std::cout << key.kv.int_key() << " ";
+    // }
+    // std::cout << std::endl;
+}
+
+
+
+
+
+
+// Write node and its children to disk
+void DiskBTree::BTreeNode::writeNode(DiskBTree* tree) {
+    if (selfOffset == 0) {
+        selfOffset = tree->pageManager.allocatePage();
+        // // logging
+        // std::cout << "Writing node at offset: " << selfOffset << std::endl;
+    }
+
+    Page page(isLeaf ? Page::PageType::LEAF_NODE : Page::PageType::INTERNAL_NODE);
+
+    if (isLeaf) {
+        for (const auto& kv : keys) {
+            page.addLeafEntry(kv);
+        }
+
+        // // log
+        // std::cout << "Leaf node keys at offset " << selfOffset << ": ";
+        // for (const auto& kv : keys) {
+        //     std::cout << kv.kv.int_key() << " ";
+        // }
+        // std::cout << std::endl;
+    } else {
+        std::vector<uint64_t> childOffsets;
+        for (auto& child : children) {
+            child->writeNode(tree);
+            childOffsets.push_back(child->selfOffset);
+        }
+        for (const auto& offset : childOffsets) {
+            page.addChildOffset(offset);
+        }
+        for (const auto& key : keys) {
+            page.addKey(key);
+        }
+        // // log
+        // std::cout << "Internal node keys at offset " << selfOffset << ": ";
+        // for (const auto& key : keys) {
+        //     std::cout << key.kv.int_key() << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << "Child offsets: ";
+        // for (const auto& offset : childOffsets) {
+        //     std::cout << offset << " ";
+        // }
+        // std::cout << std::endl;
+    }
+
+    tree->pageManager.writePage(selfOffset, page);
+}
+
+
+// Set the offset after writing to disk
+void DiskBTree::BTreeNode::setOffset(uint64_t offset) {
+    selfOffset = offset;
+}
+
+// Search for a key in the B+ tree
+KeyValueWrapper* DiskBTree::search(const KeyValueWrapper& kv) {
+    return searchInNode(rootOffset, kv);
+}
+
+// Search for a key starting from a node
+KeyValueWrapper* DiskBTree::searchInNode(uint64_t nodeOffset, const KeyValueWrapper& kv) {
+    Page page = pageManager.readPage(nodeOffset);
+    Page::PageType pageType = page.getPageType();
+
+    if (pageType == Page::PageType::LEAF_NODE) {
+        const auto& entries = page.getLeafEntries();
+        auto it = std::lower_bound(entries.begin(), entries.end(), kv);
+        if (it != entries.end() && *it == kv) {
+            return new KeyValueWrapper(*it);
+        }
+        return nullptr;
+    } else if (pageType == Page::PageType::INTERNAL_NODE) {
+        const auto& keys = page.getInternalKeys();
+        const auto& childOffsets = page.getChildOffsets();
+
+        int i = 0;
+        while (i < keys.size() && kv >= keys[i]) {
+            ++i;
+        }
+
+        return searchInNode(childOffsets[i], kv);
+    } else {
+        throw std::runtime_error("Invalid page type during search");
+    }
+}
+
+
 
 // Scan keys within a range
 void DiskBTree::scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result) {
-    BTreeNode root = readNode(rootOffset);
-    root.scan(startKey, endKey, this, result);
+    scanInNode(rootOffset, startKey, endKey, result);
+}
+
+// Scan keys starting from a node
+void DiskBTree::scanInNode(uint64_t nodeOffset, const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result) {
+    Page page = pageManager.readPage(nodeOffset);
+    if (page.getPageType() == Page::PageType::LEAF_NODE) {
+        const auto& entries = page.getLeafEntries();
+        for (const auto& kv : entries) {
+            if (kv >= startKey && kv <= endKey) {
+                result.push_back(kv);
+            } else if (kv > endKey) {
+                break;
+            }
+        }
+    } else if (page.getPageType() == Page::PageType::INTERNAL_NODE) {
+        const auto& keys = page.getInternalKeys();
+        const auto& childOffsets = page.getChildOffsets();
+        int i = 0;
+        while (i < keys.size() && startKey > keys[i]) {
+            ++i;
+        }
+        for (; i < childOffsets.size(); ++i) {
+            scanInNode(childOffsets[i], startKey, endKey, result);
+            if (i < keys.size() && keys[i] > endKey) {
+                break;
+            }
+        }
+    } else {
+        throw std::runtime_error("Invalid page type during scan");
+    }
 }
 
 // Get the SST file name
@@ -72,181 +314,7 @@ std::string DiskBTree::getFileName() const {
     return sstFileName;
 }
 
-// Read node from disk
-DiskBTree::BTreeNode DiskBTree::readNode(uint64_t offset) {
-    Page page = pageManager.readPage(offset);
-    return BTreeNode::fromPage(page, offset);
-}
 
-// Write node to disk
-void DiskBTree::writeNode(const BTreeNode& node) {
-    Page page = node.toPage();
-    pageManager.writePage(node.selfOffset, page);
-}
 
-// Allocate a new node
-DiskBTree::BTreeNode DiskBTree::allocateNode(bool isLeaf) {
-    uint64_t offset = pageManager.allocatePage();
-    return BTreeNode(isLeaf, offset);
-}
-
-// Write metadata (root offset)
-void DiskBTree::writeMetadata() {
-    // Create a metadata page
-    Page metadataPage(Page::PageType::SST_METADATA);
-    metadataPage.setMetadata(rootOffset, 0, 0, sstFileName); // leafBegin and leafEnd can be set appropriately
-    // Write the metadata page at offset 0
-    pageManager.writePage(0, metadataPage);
-}
-
-// Read metadata (root offset)
-void DiskBTree::readMetadata() {
-    Page metadataPage = pageManager.readPage(0);
-    uint64_t leafBegin, leafEnd;
-    std::string fileName;
-    metadataPage.getMetadata(rootOffset, leafBegin, leafEnd, fileName);
-}
-
-// BTreeNode constructor
-DiskBTree::BTreeNode::BTreeNode(bool isLeaf, uint64_t offset)
-    : isLeaf(isLeaf), selfOffset(offset) {}
-
-// Check if the node is full
-bool DiskBTree::BTreeNode::isFull(int degree) const {
-    return keys.size() == 2 * degree - 1;
-}
-
-// Insert non-full (used during initial build)
-void DiskBTree::BTreeNode::insertNonFull(const KeyValueWrapper& kv, int degree, DiskBTree* tree) {
-    int i = keys.size() - 1;
-    if (isLeaf) {
-        // Insert the new key into the leaf node
-        keys.push_back(kv);
-        while (i >= 0 && kv < keys[i]) {
-            keys[i + 1] = keys[i];
-            --i;
-        }
-        keys[i + 1] = kv;
-        tree->writeNode(*this);
-    } else {
-        // Find the child that is going to have the new key
-        while (i >= 0 && kv < keys[i]) {
-            --i;
-        }
-        ++i;
-        // Read the child
-        BTreeNode childNode = tree->readNode(childOffsets[i]);
-        if (childNode.isFull(degree)) {
-            // Split the child
-            splitChild(i, degree, tree);
-            if (kv > keys[i]) {
-                ++i;
-            }
-            childNode = tree->readNode(childOffsets[i]);
-        }
-        childNode.insertNonFull(kv, degree, tree);
-    }
-}
-
-// Split child node (used during initial build)
-void DiskBTree::BTreeNode::splitChild(int idx, int degree, DiskBTree* tree) {
-    BTreeNode y = tree->readNode(childOffsets[idx]);
-    BTreeNode z = tree->allocateNode(y.isLeaf);
-
-    // Move the last (degree - 1) keys from y to z
-    z.keys.assign(y.keys.begin() + degree, y.keys.end());
-    y.keys.resize(degree - 1);
-
-    if (!y.isLeaf) {
-        // Move the last degree child offsets from y to z
-        z.childOffsets.assign(y.childOffsets.begin() + degree, y.childOffsets.end());
-        y.childOffsets.resize(degree);
-    }
-
-    // Insert new child into this node
-    childOffsets.insert(childOffsets.begin() + idx + 1, z.selfOffset);
-    keys.insert(keys.begin() + idx, y.keys[degree - 1]);
-
-    // Write nodes back to disk
-    tree->writeNode(y);
-    tree->writeNode(z);
-    tree->writeNode(*this);
-}
-
-// Search for a key
-KeyValueWrapper* DiskBTree::BTreeNode::search(const KeyValueWrapper& kv, DiskBTree* tree) {
-    int i = 0;
-    while (i < keys.size() && kv > keys[i]) {
-        ++i;
-    }
-    if (i < keys.size() && kv == keys[i]) {
-        return &keys[i];
-    }
-    if (isLeaf) {
-        return nullptr;
-    } else {
-        // Read the child node from disk
-        BTreeNode childNode = tree->readNode(childOffsets[i]);
-        return childNode.search(kv, tree);
-    }
-}
-
-// Scan keys within a range
-void DiskBTree::BTreeNode::scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, DiskBTree* tree, std::vector<KeyValueWrapper>& result) {
-    int i = 0;
-    while (i < keys.size() && keys[i] < startKey) {
-        ++i;
-    }
-    if (isLeaf) {
-        while (i < keys.size() && keys[i] <= endKey) {
-            result.push_back(keys[i]);
-            ++i;
-        }
-    } else {
-        for (; i <= keys.size(); ++i) {
-            BTreeNode childNode = tree->readNode(childOffsets[i]);
-            childNode.scan(startKey, endKey, tree, result);
-            if (i < keys.size() && keys[i] > endKey) {
-                break;
-            }
-        }
-    }
-}
-
-// Convert node to page
-Page DiskBTree::BTreeNode::toPage() const {
-    Page page(isLeaf ? Page::PageType::LEAF_NODE : Page::PageType::INTERNAL_NODE);
-
-    if (isLeaf) {
-        for (const auto& kv : keys) {
-            page.addLeafEntry(kv);
-        }
-    } else {
-        if (childOffsets.size() != keys.size() + 1) {
-            throw std::runtime_error("Inconsistent number of child offsets and keys in internal node");
-        }
-        for (const auto& childOffset : childOffsets) {
-            page.addChildOffset(childOffset);
-        }
-        for (const auto& key : keys) {
-            page.addKey(key);
-        }
-    }
-    return page;
-}
-
-// Create node from page
-DiskBTree::BTreeNode DiskBTree::BTreeNode::fromPage(const Page& page, uint64_t offset) {
-    bool isLeaf = (page.getPageType() == Page::PageType::LEAF_NODE);
-    BTreeNode node(isLeaf, offset);
-
-    if (isLeaf) {
-        node.keys = page.getLeafEntries();
-    } else {
-        node.childOffsets = page.getChildOffsets();
-        node.keys = page.getInternalKeys();
-    }
-    return node;
-}
 
 
