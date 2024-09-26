@@ -1,0 +1,97 @@
+name: Unit tests with CMake on multiple platforms
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang, cl]
+        include:
+#          - os: windows-latest
+#            c_compiler: cl
+#            cpp_compiler: cl
+#            is_multiconfig: true
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            is_multiconfig: false
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            is_multiconfig: false
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install dependencies on Linux
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler libssl-dev
+
+#      # Set up vcpkg for Windows (without the incorrect reference)
+#      - name: Install dependencies (Windows)
+#        if: matrix.os == 'windows-latest'
+#        run: |
+#          git clone https://github.com/Microsoft/vcpkg.git
+#          ./vcpkg/bootstrap-vcpkg.bat
+#          ./vcpkg/vcpkg install protobuf openssl
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -S ${{ github.workspace }}
+
+      - name: Build
+        run: |
+          if ${{ matrix.is_multiconfig }}; then
+            cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+          else
+            cmake --build ${{ steps.strings.outputs.build-output-dir }}
+          fi
+
+#      - name: List files in build directory (Windows)
+#        if: matrix.os == 'windows-latest'
+#        run: dir ${{ steps.strings.outputs.build-output-dir }}
+#
+#      - name: List files in Release directory (Windows)
+#        if: matrix.os == 'windows-latest'
+#        run: dir ${{ steps.strings.outputs.build-output-dir }}\Release
+
+      - name: Run Tests on Linux
+        if: matrix.os != 'windows-latest'
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        run: ./runTests
+
+#      - name: Run Tests on Windows
+#        if: matrix.os == 'windows-latest'
+#        working-directory: ${{ steps.strings.outputs.build-output-dir }}\Release
+#        run: .\runTests.exe
