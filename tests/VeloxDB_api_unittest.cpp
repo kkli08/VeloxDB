@@ -273,6 +273,9 @@ TEST(VeloxDBTest, LargeScaleInsertAndScanRange) {
         EXPECT_EQ(it->kv.string_value(), "value_" + std::to_string(i));
     }
 
+    // cache hit
+    db->printCacheHit();
+
     // Clean up
     db->Close();
     fs::remove_all("test_db");

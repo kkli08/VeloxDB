@@ -86,6 +86,7 @@ add_executable(runTests
         VeloxDB/VeloxDB.tpp
         tests/VeloxDB_api_unittest.cpp
         Memory/BufferPool/BufferPool.cpp
+        tests/veloxdb_GET_benchmark.cpp
 
 )
 

@@ -54,7 +54,7 @@ memtable(std::make_unique<Memtable>(memtable_size, sstFileManager)) {
         // Set buffer pool parameters
         void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
         void printCacheHit() const {
-            std::cout << "Cache hit" << sstFileManager->getTotalCacheHits() << std::endl;
+            std::cout << "Cache hit: " << sstFileManager->getTotalCacheHits() << " times." << std::endl;
         };
 
     private:
