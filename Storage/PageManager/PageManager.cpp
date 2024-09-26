@@ -78,6 +78,7 @@ Page PageManager::readPage(uint64_t offset) {
     // Try to get the page from buffer pool
     auto page = bufferPool->getPage(fileName, offset);
     if (page != nullptr) {
+        bufferPool->Hit();
         return *page;
     } else {
         // Read from disk

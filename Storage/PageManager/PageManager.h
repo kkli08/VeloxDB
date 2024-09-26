@@ -37,6 +37,7 @@ public:
 
     // BufferPool configuration
     void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+    long long getCacheHit() const {return bufferPool->getCacheHit();};
 
 private:
     std::string fileName;

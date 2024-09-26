@@ -35,6 +35,7 @@ public:
 
     // Set buffer pool parameters
     void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+    long long getTotalCacheHits() const;
 
 private:
     // Directory where SST files are stored

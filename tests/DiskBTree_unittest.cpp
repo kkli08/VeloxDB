@@ -431,51 +431,51 @@ TEST(DiskBTreeTest, ScanStringKeys) {
     cleanUp(sstFileName);
 }
 
-// // Test multiple searches in a loop to assess performance
-// TEST(DiskBTreeTest, SearchPerformanceTest) {
-//     std::string sstFileName = "test_sst_search_performance.sst";
-//     cleanUp(sstFileName);
-//
-//     // Generate large test data
-//     size_t dataSize = 1000000; // 1e6 entries
-//     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(dataSize);
-//
-//     // Create DiskBTree
-//     DiskBTree btree(sstFileName, 50, keyValues);
-//
-//     // Perform multiple searches
-//     for (size_t i = 0; i < dataSize; i += 100000) {
-//         KeyValueWrapper* result = btree.search(KeyValueWrapper(static_cast<int>(i), 0));
-//         ASSERT_NE(result, nullptr);
-//         EXPECT_EQ(result->kv.int_key(), static_cast<int>(i));
-//         EXPECT_EQ(result->kv.int_value(), static_cast<int>(i * 10));
-//     }
-//
-//     // Clean up
-//     cleanUp(sstFileName);
-// }
+// Test multiple searches in a loop to assess performance
+TEST(DiskBTreeTest, SearchPerformanceTest) {
+    std::string sstFileName = "test_sst_search_performance.sst";
+    cleanUp(sstFileName);
 
-// // Test scan method over the entire dataset to assess performance
-// TEST(DiskBTreeTest, ScanPerformanceTest) {
-//     std::string sstFileName = "test_sst_scan_performance.sst";
-//     cleanUp(sstFileName);
-//
-//     // Generate large test data
-//     size_t dataSize = 1000000; // 1e6 entries
-//     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(dataSize);
-//
-//     // Create DiskBTree
-//     DiskBTree btree(sstFileName, 50, keyValues);
-//
-//     // Scan the entire range
-//     std::vector<KeyValueWrapper> result;
-//     btree.scan(KeyValueWrapper(0, 0), KeyValueWrapper(static_cast<int>(dataSize - 1), 0), result);
-//
-//     // Verify the results
-//     EXPECT_EQ(result.size(), dataSize);
-//     EXPECT_EQ(result.front().kv.int_key(), 0);
-//     EXPECT_EQ(result.back().kv.int_key(), static_cast<int>(dataSize - 1));
-//
-//     // Clean up
-//     cleanUp(sstFileName);
-// }
+    // Generate large test data
+    size_t dataSize = 1000000; // 1e6 entries
+    std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(dataSize);
+
+    // Create DiskBTree
+    DiskBTree btree(sstFileName, 50, keyValues);
+
+    // Perform multiple searches
+    for (size_t i = 0; i < dataSize; i += 100000) {
+        KeyValueWrapper* result = btree.search(KeyValueWrapper(static_cast<int>(i), 0));
+        ASSERT_NE(result, nullptr);
+        EXPECT_EQ(result->kv.int_key(), static_cast<int>(i));
+        EXPECT_EQ(result->kv.int_value(), static_cast<int>(i * 10));
+    }
+
+    // Clean up
+    cleanUp(sstFileName);
+}
+
+// Test scan method over the entire dataset to assess performance
+TEST(DiskBTreeTest, ScanPerformanceTest) {
+    std::string sstFileName = "test_sst_scan_performance.sst";
+    cleanUp(sstFileName);
+
+    // Generate large test data
+    size_t dataSize = 1000000; // 1e6 entries
+    std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(dataSize);
+
+    // Create DiskBTree
+    DiskBTree btree(sstFileName, 50, keyValues);
+
+    // Scan the entire range
+    std::vector<KeyValueWrapper> result;
+    btree.scan(KeyValueWrapper(0, 0), KeyValueWrapper(static_cast<int>(dataSize - 1), 0), result);
+
+    // Verify the results
+    EXPECT_EQ(result.size(), dataSize);
+    EXPECT_EQ(result.front().kv.int_key(), 0);
+    EXPECT_EQ(result.back().kv.int_key(), static_cast<int>(dataSize - 1));
+
+    // Clean up
+    cleanUp(sstFileName);
+}

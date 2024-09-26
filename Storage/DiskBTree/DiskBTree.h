@@ -42,6 +42,7 @@ public:
 
     // Set buffer pool parameters
     void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+    long long getCacheHit() const {return pageManager.getCacheHit();};
 
 private:
     // B+ tree degree

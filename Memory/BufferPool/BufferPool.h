@@ -57,9 +57,14 @@ public:
     // Set the eviction policy
     void setEvictionPolicy(EvictionPolicy policy);
 
+    // cache hit
+    void Hit() {++cacheHit;};
+    long long getCacheHit() const {return cacheHit;};
+
 private:
     size_t capacity;
     EvictionPolicy policy;
+    long long cacheHit = 0;
 
     // Underlying container for the buffer pool
     std::unordered_map<PageId, std::shared_ptr<Page>> pageTable;

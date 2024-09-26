@@ -102,7 +102,14 @@ void SSTFileManager::setBufferPoolParameters(size_t capacity, EvictionPolicy pol
     }
 }
 
+long long SSTFileManager::getTotalCacheHits() const {
+    long long totalCacheHit = 0;
+    for(auto sst : sstFiles) {
+        totalCacheHit+=sst->getCacheHit();
+    }
 
+    return totalCacheHit;
+}
 
 
 
