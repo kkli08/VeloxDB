@@ -52,7 +52,7 @@ memtable(std::make_unique<Memtable>(memtable_size, sstFileManager)) {
         set<KeyValueWrapper> Scan(K1 small_key, K2 large_key);
 
         // Set buffer pool parameters
-//        void SetBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+        void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
 
     private:
         std::shared_ptr<SSTFileManager> sstFileManager;
@@ -69,6 +69,9 @@ memtable(std::make_unique<Memtable>(memtable_size, sstFileManager)) {
                 throw runtime_error("Database is not open. Please open the database before performing operations.");
             }
         }
+        // Buffer pool parameters
+        size_t bufferPoolCapacity;
+        EvictionPolicy bufferPoolPolicy;
 };
 
 

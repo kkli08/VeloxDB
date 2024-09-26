@@ -92,6 +92,15 @@ void SSTFileManager::scan(const KeyValueWrapper& startKey, const KeyValueWrapper
     std::cout << "Scan completed with " << result.size() << " key-value pairs found." << std::endl;
 }
 
+void SSTFileManager::setBufferPoolParameters(size_t capacity, EvictionPolicy policy) {
+    bufferPoolCapacity = capacity;
+    bufferPoolPolicy = policy;
+
+    // Update existing DiskBTrees
+    for (auto& sst : sstFiles) {
+        sst->setBufferPoolParameters(capacity, policy);
+    }
+}
 
 
 

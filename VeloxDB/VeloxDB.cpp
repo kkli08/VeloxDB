@@ -122,11 +122,10 @@ namespace fs = std::filesystem;
   }
 
 
-  // void VeloxDB::SetBufferPoolParameters(size_t capacity, EvictionPolicy policy) {
-  //   check_if_open();
-  //   if (index) {
-  //     index->SetBufferPoolParameters(capacity, policy);
-  //   } else {
-  //     throw std::runtime_error("Index is not initialized.");
-  //   }
-  // }
+void VeloxDB::setBufferPoolParameters(size_t capacity, EvictionPolicy policy) {
+    bufferPoolCapacity = capacity;
+    bufferPoolPolicy = policy;
+
+    // Set buffer pool parameters in sstFileManager
+    sstFileManager->setBufferPoolParameters(capacity, policy);
+  }

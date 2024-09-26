@@ -314,7 +314,9 @@ std::string DiskBTree::getFileName() const {
     return sstFileName;
 }
 
-
+void DiskBTree::setBufferPoolParameters(size_t capacity, EvictionPolicy policy) {
+    pageManager.setBufferPoolParameters(capacity, policy);
+}
 
 
 

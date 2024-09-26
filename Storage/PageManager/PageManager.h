@@ -6,6 +6,7 @@
 #define PAGEMANAGER_H
 
 #include "Page.h"
+#include "BufferPool.h"
 #include <string>
 #include <fstream>
 #include <cstdint>
@@ -34,12 +35,16 @@ public:
     // Close the file
     void close();
 
+    // BufferPool configuration
+    void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+
 private:
     std::string fileName;
     size_t pageSize;
     std::fstream file;
     uint64_t nextPageOffset;
 
+    std::shared_ptr<BufferPool> bufferPool;
     // Methods to manage file I/O
     void openFile();
 };

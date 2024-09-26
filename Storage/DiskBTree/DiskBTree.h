@@ -40,6 +40,9 @@ public:
     // set degree
     void setDegree(int _degree) {degree = _degree;};
 
+    // Set buffer pool parameters
+    void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+
 private:
     // B+ tree degree
     int degree;

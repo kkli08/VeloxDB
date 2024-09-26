@@ -85,6 +85,7 @@ add_executable(runTests
         VeloxDB/VeloxDB.cpp
         VeloxDB/VeloxDB.tpp
         tests/VeloxDB_api_unittest.cpp
+        Memory/BufferPool/BufferPool.cpp
 
 )
 
@@ -118,6 +119,7 @@ set(SOURCE_FILES
         VeloxDB/VeloxDB.h
         VeloxDB/VeloxDB.cpp
         VeloxDB/VeloxDB.tpp
+        Memory/BufferPool/BufferPool.cpp
 )
 
 # Add the executable

@@ -33,6 +33,9 @@ public:
     // set path
     void setPath(string _path) {dbDirectory = _path;};
 
+    // Set buffer pool parameters
+    void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+
 private:
     // Directory where SST files are stored
     std::string dbDirectory;
@@ -45,6 +48,9 @@ private:
 
     // Method to generate new SST file names
     std::string generateSSTFileName();
+
+    size_t bufferPoolCapacity;
+    EvictionPolicy bufferPoolPolicy;
 
     // Other private methods...
 };
