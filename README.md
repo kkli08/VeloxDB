@@ -1,4 +1,5 @@
 ## VeloxDB
+![Unit Tests](https://github.com/kkli08/VeloxDB/actions/workflows/cmake-unit-tests-multi-platform.yml/badge.svg)
 
 VeloxDB is a persistent key-value store database library. It designed to store 
 key-value pairs and allow efficient retrieval based on the key. This system is 
