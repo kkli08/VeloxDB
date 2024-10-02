@@ -269,11 +269,15 @@ message KeyValue {
   KeyValueType value_type = 12;
 }
 ```
-### Dataflow Diagram
-![DFD](/img/dfd/kvdb_lv0_v2.0.jpg)
 
-### UML
-![UML](img/uml/kvdb_s2_uml_v2.1.jpg)
+[//]: # (### Dataflow Diagram)
+
+[//]: # (![DFD]&#40;/img/dfd/kvdb_lv0_v2.0.jpg&#41;)
+
+[//]: # ()
+[//]: # (### UML)
+
+[//]: # (![UML]&#40;img/uml/kvdb_s2_uml_v2.1.jpg&#41;)
 
 
 ### Supported Platforms and Compilers
