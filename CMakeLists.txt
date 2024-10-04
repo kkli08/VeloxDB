@@ -153,3 +153,5 @@ include_directories(
 # Add the generated protobuf directory to the include path
 include_directories(${GENERATED_PROTO_DIR})
 
+# Optionally include the Benchmark directory
+add_subdirectory(Benchmark)
