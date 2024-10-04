@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 
+# Set CMake policies
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Project name
 project(VeloxDB)
 
@@ -29,11 +34,15 @@ set(GENERATED_PROTO_DIR ${PROJECT_SOURCE_DIR}/protobuf)
 # Include FetchContent module
 include(FetchContent)
 
+# Set Abseil option
+set(ABSL_PROPAGATE_CXX_STD ON)
+
 # Fetch Abseil library
 FetchContent_Declare(
         abseil
         GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
         GIT_TAG        20230802.0  # Use the latest stable release tag
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(abseil)
 
@@ -41,6 +50,7 @@ FetchContent_MakeAvailable(abseil)
 FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
@@ -48,22 +58,8 @@ FetchContent_MakeAvailable(googletest)
 # Enable testing
 enable_testing()
 
-# ---- TEST TARGET ----
-add_executable(runTests
-        # Test files
-        tests/binarytree_tests.cpp
-        tests/redblacktree_unittest.cpp
-        tests/memtable_unittest.cpp
-        tests/kvpair_unittest.cpp
-        tests/treenode_unittests.cpp
-        tests/page_unittests.cpp
-        tests/page_manager_unittest.cpp
-        tests/DiskBTree_unittest.cpp
-        tests/SST_File_Manager_unittest.cpp
-        tests/VeloxDB_api_unittest.cpp
-        tests/veloxdb_GET_benchmark.cpp
-
-        # Source files required by tests
+# ---- DEFINE SHARED LIBRARY ----
+add_library(veloxdb_lib STATIC
         # kv
         kv/KeyValue.cpp
         kv/KeyValue.tpp
@@ -96,8 +92,8 @@ add_executable(runTests
         ${PROTO_SRCS}
 )
 
-# Include directories for runTests
-target_include_directories(runTests PRIVATE
+# Include directories for veloxdb_lib
+target_include_directories(veloxdb_lib PUBLIC
         ${PROJECT_SOURCE_DIR}/kv
         ${PROJECT_SOURCE_DIR}/Memory/Memtable
         ${PROJECT_SOURCE_DIR}/Memory/BufferPool
@@ -121,12 +117,10 @@ target_include_directories(runTests PRIVATE
         ${absl_BINARY_DIR}
 )
 
-# Link libraries to runTests
-target_link_libraries(runTests PRIVATE
-        gtest
-        gtest_main
+# Link libraries to veloxdb_lib
+target_link_libraries(veloxdb_lib PUBLIC
         protobuf::libprotobuf
-        absl::check    # Corrected from absl::checks to absl::check
+        absl::check
         absl::log
         absl::strings
         absl::status
@@ -135,6 +129,35 @@ target_link_libraries(runTests PRIVATE
         absl::memory
         absl::flat_hash_map
         absl::base
+)
+
+# ---- TEST TARGET ----
+add_executable(runTests
+        # Test files
+        tests/binarytree_tests.cpp
+        tests/redblacktree_unittest.cpp
+        tests/memtable_unittest.cpp
+        tests/kvpair_unittest.cpp
+        tests/treenode_unittests.cpp
+        tests/page_unittests.cpp
+        tests/page_manager_unittest.cpp
+        tests/DiskBTree_unittest.cpp
+        tests/SST_File_Manager_unittest.cpp
+        tests/VeloxDB_api_unittest.cpp
+        tests/veloxdb_GET_benchmark.cpp
+)
+
+# Include directories for runTests
+target_include_directories(runTests PRIVATE
+        ${PROJECT_SOURCE_DIR}/tests
+        ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+# Link libraries to runTests
+target_link_libraries(runTests PRIVATE
+        veloxdb_lib
+        gtest
+        gtest_main
 )
 
 # Register tests with CTest
@@ -143,74 +166,18 @@ add_test(NAME runTests COMMAND runTests)
 # ---- MAIN TARGET ----
 add_executable(main
         main.cpp
-
-        # Source files
-        kv/KeyValue.cpp
-        kv/KeyValue.tpp
-
-        Memory/Memtable/Memtable.cpp
-        Memory/BufferPool/BufferPool.cpp
-
-        Tree/TreeNode/TreeNode.cpp
-        Tree/TreeNode/TreeNode.tpp
-        Tree/BinaryTree/BinaryTree.cpp
-        Tree/BinaryTree/BinaryTree.tpp
-        Tree/RedBlackTree/RedBlackTree.cpp
-        Tree/BTree/BTree.cpp
-
-        Storage/FileManager/FileManager.cpp
-        Storage/Page/Page.cpp
-        Storage/PageManager/PageManager.cpp
-        Storage/DiskBTree/DiskBTree.cpp
-        Storage/SstFileManager/SstFileManager.cpp
-
-        VeloxDB/VeloxDB.cpp
-        VeloxDB/VeloxDB.h
-        VeloxDB/VeloxDB.tpp
-
-        # Generated Protobuf source files
-        ${PROTO_SRCS}
 )
 
 # Include directories for main
 target_include_directories(main PRIVATE
-        ${PROJECT_SOURCE_DIR}/kv
-        ${PROJECT_SOURCE_DIR}/Memory/Memtable
-        ${PROJECT_SOURCE_DIR}/Memory/BufferPool
-        ${PROJECT_SOURCE_DIR}/Storage/BloomFilter
-        ${PROJECT_SOURCE_DIR}/Storage/Page
-        ${PROJECT_SOURCE_DIR}/Storage/PageManager
-        ${PROJECT_SOURCE_DIR}/Storage/SstFileManager
-        ${PROJECT_SOURCE_DIR}/Storage/FileManager
-        ${PROJECT_SOURCE_DIR}/Storage/DiskBTree
-        ${PROJECT_SOURCE_DIR}/Tree/BinaryTree
-        ${PROJECT_SOURCE_DIR}/Tree/BTree
-        ${PROJECT_SOURCE_DIR}/Tree/LSMTree
-        ${PROJECT_SOURCE_DIR}/Tree/RedBlackTree
-        ${PROJECT_SOURCE_DIR}/Tree/TreeNode
-        ${PROJECT_SOURCE_DIR}/VeloxDB
-        ${CMAKE_CURRENT_BINARY_DIR}
         ${PROJECT_SOURCE_DIR}
-        ${GENERATED_PROTO_DIR}
-        ${Protobuf_INCLUDE_DIRS}
-        ${absl_SOURCE_DIR}
-        ${absl_BINARY_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 # Link libraries to main
 target_link_libraries(main PRIVATE
-        protobuf::libprotobuf
-        absl::check    # Corrected from absl::checks to absl::check
-        absl::log
-        absl::strings
-        absl::status
-        absl::synchronization
-        absl::time
-        absl::memory
-        absl::flat_hash_map
-        absl::base
+        veloxdb_lib
 )
 
-# Optionally include the Benchmark directory
-# Uncomment the following line if you have a Benchmark directory to include
-# add_subdirectory(Benchmark)
+# Include the Benchmark directory
+add_subdirectory(Benchmark)

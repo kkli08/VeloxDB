@@ -64,7 +64,7 @@ void benchmarkPut(std::unique_ptr<VeloxDB>& db, size_t dataSizeMB, size_t memtab
 
 int main() {
     // Define the output directory for the CSV file
-    std::string outputDir = "../put_throughput";
+    std::string outputDir = "./put_throughput";
     std::string outputFilePath = outputDir + "/put_throughput.csv";
 
     // Create the directory if it does not exist
