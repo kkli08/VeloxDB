@@ -44,3 +44,23 @@ target_include_directories(get_benchmark PRIVATE
 target_link_libraries(get_benchmark PRIVATE
         veloxdb_lib
 )
+
+# === === === Scan throughput  === === ===
+# Source files for the benchmark
+set(SCAN_BENCHMARK_SRCS
+        scan_throughput_benchmark.cpp
+)
+# Add executable for the benchmark
+add_executable(scan_benchmark
+        ${SCAN_BENCHMARK_SRCS}
+)
+# Include directories for the benchmark executable
+target_include_directories(scan_benchmark PRIVATE
+        ${CMAKE_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+# Link libraries to the benchmark executable
+target_link_libraries(scan_benchmark PRIVATE
+        veloxdb_lib
+)
+

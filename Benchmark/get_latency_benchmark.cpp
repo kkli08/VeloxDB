@@ -14,9 +14,9 @@ namespace fs = std::filesystem;
 using namespace std::chrono;
 
 // Constants for benchmark
-constexpr size_t MB = 1024 * 1024; // 1MB in bytes
+constexpr size_t MB = 1024 * 1024 / 128; // 1MB in bytes divided by the lens of key value pair
 constexpr size_t START_DATA_SIZE_MB = 1;  // Start with 1 MB
-constexpr size_t END_DATA_SIZE_MB = 512;  // End with 512 MB (adjust as needed)
+constexpr size_t END_DATA_SIZE_MB = 2048;  // End with 512 MB (adjust as needed)
 const std::string DB_NAME = "benchmark_db";
 
 // Function to generate random strings
@@ -45,7 +45,7 @@ void benchmarkGet(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile
     size_t bytesInserted = 0;
     std::vector<std::string> keys;
     while (bytesInserted < dataSizeMB * MB) {
-        std::string key = generateRandomString(16);    // 16-byte key
+        std::string key = generateRandomString(28);    // 28-byte key
         std::string value = generateRandomString(100); // 100-byte value
         db->Put(key, value);
         keys.push_back(key);  // Save the key for later retrieval
@@ -102,7 +102,7 @@ int main() {
     csvFile << "MemtableSizeMB,DataSizeMB,AverageLatency(ms)\n";
 
     // Benchmark configurations
-    std::vector<size_t> memtableSizes = {1 * MB, 5 * MB, 10 * MB}; // Memtable sizes: 1MB, 5MB, 10MB
+    std::vector<size_t> memtableSizes = {25 * MB, 50 * MB, 100 * MB}; // Memtable sizes: 25MB, 50MB, 100MB
 
     // Run benchmarks for each Memtable size and data size
     for (auto memtableSize : memtableSizes) {

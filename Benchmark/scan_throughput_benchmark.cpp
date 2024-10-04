@@ -1,3 +1,7 @@
+//
+// Created by Damian Li on 2024-10-04.
+//
+
 #include <iostream>
 #include <chrono>
 #include <memory>
@@ -27,9 +31,9 @@ std::string generateRandomString(size_t length) {
     return result;
 }
 
-// Function to benchmark Put operation
-void benchmarkPut(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile) {
-    std::cout << "Benchmarking Put: MemtableSize = " << memtableSize / MB
+// Function to benchmark Scan operation
+void benchmarkScan(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile) {
+    std::cout << "Benchmarking Scan: MemtableSize = " << memtableSize / MB
               << "MB, DataSize = " << dataSizeMB << "MB" << std::endl;
 
     // Create the database object with the specified memtable size
@@ -38,24 +42,29 @@ void benchmarkPut(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile
     // Open the database
     db->Open(DB_NAME);
 
-    // Start timing
+    // Insert data to populate the database
+    size_t bytesInserted = 0;
+    int counter = 1;  // Start key value
+    while (bytesInserted < dataSizeMB * MB) {
+        std::string value = generateRandomString(128);  // 100-byte value
+        db->Put(counter, value);
+        bytesInserted += sizeof(counter) + value.size();  // Calculate size
+        counter++;
+    }
+
+    // Start timing the Scan operation
     auto start = high_resolution_clock::now();
 
-    // Insert data
-    size_t bytesInserted = 0;
-    while (bytesInserted < dataSizeMB * MB) {
-        std::string key = generateRandomString(28);    // 16-byte key
-        std::string value = generateRandomString(100); // 100-byte value
-        db->Put(key, value);
-        bytesInserted += key.size() + value.size();
-    }
+    // Perform a scan operation on a range (1 to counter/2)
+    auto resultSet = db->Scan(KeyValueWrapper(1, ""), KeyValueWrapper(counter / 2, ""));
 
     // Stop timing
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start).count();
 
     // Calculate throughput in MB/s
-    double throughput = static_cast<double>(dataSizeMB * 1000) / duration;
+    double totalSize = static_cast<double>(resultSet.size() * (sizeof(int) + 100));  // Each entry is key (int) + value (100 bytes)
+    double throughput = (totalSize / MB) / (duration / 1000.0);  // MB/s
 
     // Write result to CSV
     csvFile << memtableSize / MB << "," << dataSizeMB << "," << throughput << std::endl;
@@ -79,8 +88,8 @@ int main() {
     srand(static_cast<unsigned>(time(nullptr)));
 
     // Define the output directory for the CSV file
-    std::string outputDir = "./put_throughput";
-    std::string outputFilePath = outputDir + "/put_throughput.csv";
+    std::string outputDir = "./scan_throughput";
+    std::string outputFilePath = outputDir + "/scan_throughput.csv";
 
     // Create the directory if it does not exist
     if (!fs::exists(outputDir)) {
@@ -97,7 +106,7 @@ int main() {
     // Run benchmarks for each Memtable size and data size
     for (auto memtableSize : memtableSizes) {
         for (size_t dataSizeMB = START_DATA_SIZE_MB; dataSizeMB <= END_DATA_SIZE_MB; dataSizeMB *= 2) {
-            benchmarkPut(dataSizeMB, memtableSize, csvFile);
+            benchmarkScan(dataSizeMB, memtableSize, csvFile);
         }
     }
 
