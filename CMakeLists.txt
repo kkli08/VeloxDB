@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
 
-# Set CMake policies
-if(POLICY CMP0135)
-    cmake_policy(SET CMP0135 NEW)
-endif()
-
 # Project name
 project(VeloxDB)
 
@@ -20,6 +15,36 @@ endif()
 # Find the required Protobuf package
 find_package(Protobuf REQUIRED)
 
+# Include FetchContent module
+include(FetchContent)
+
+# Fetch Abseil library
+FetchContent_Declare(
+        abseil
+        GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+        GIT_TAG        20230802.0  # Use the latest stable release tag
+        GIT_SHALLOW    TRUE
+        GIT_PROGRESS   TRUE
+        GIT_CLONE_TIMEOUT 300      # Increase timeout as needed
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(abseil)
+
+# Fetch GoogleTest
+FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG        release-1.12.1
+        GIT_SHALLOW    TRUE
+        GIT_PROGRESS   TRUE
+        GIT_CLONE_TIMEOUT 300      # Increase timeout as needed
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(googletest)
+
+# Enable testing
+enable_testing()
+
 # Specify the path to the .proto files
 set(PROTO_FILES
         ${PROJECT_SOURCE_DIR}/protobuf/KeyValue.proto
@@ -30,33 +55,6 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
 
 # Ensure that the generated files are placed in the protobuf directory
 set(GENERATED_PROTO_DIR ${PROJECT_SOURCE_DIR}/protobuf)
-
-# Include FetchContent module
-include(FetchContent)
-
-# Set Abseil option
-set(ABSL_PROPAGATE_CXX_STD ON)
-
-# Fetch Abseil library
-FetchContent_Declare(
-        abseil
-        GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-        GIT_TAG        20230802.0  # Use the latest stable release tag
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-FetchContent_MakeAvailable(abseil)
-
-# Fetch GoogleTest
-FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.zip
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-
-# Enable testing
-enable_testing()
 
 # ---- DEFINE SHARED LIBRARY ----
 add_library(veloxdb_lib STATIC
