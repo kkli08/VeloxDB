@@ -12,7 +12,7 @@ using namespace std::chrono;
 
 // Constants for benchmark
 constexpr size_t MB = 1024 * 1024 / 128; // 1MB in bytes
-constexpr size_t START_DATA_SIZE_MB = 1;  // Start with 1 MB
+constexpr size_t START_DATA_SIZE_MB = 16;  // Start with 1 MB
 constexpr size_t END_DATA_SIZE_MB = 2048;  // End with 512 MB (adjust as needed)
 const std::string DB_NAME = "benchmark_db";
 
@@ -92,7 +92,7 @@ int main() {
     csvFile << "MemtableSizeMB,DataSizeMB,Throughput(MB/s)\n";
 
     // Benchmark configurations
-    std::vector<size_t> memtableSizes = {25 * MB, 50 * MB, 100 * MB}; // Memtable sizes: 25MB, 50MB, 100MB
+    std::vector<size_t> memtableSizes = {5 * MB, 25 * MB, 125 * MB}; // Memtable sizes: 25MB, 50MB, 100MB
 
     // Run benchmarks for each Memtable size and data size
     for (auto memtableSize : memtableSizes) {

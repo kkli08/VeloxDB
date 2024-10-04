@@ -38,7 +38,7 @@ plt.xlabel('Input Data Size (MB)')
 plt.ylabel('Throughput (MB/s)')
 
 # Set custom x-axis values and labels
-x_ticks = [2 ** i for i in range(1, 10)]  # Use 2, 4, 8, 16, 32, ..., 512
+x_ticks = [2 ** i for i in range(3, 13)]  # Use 2, 4, 8, 16, 32, ..., 512
 ax = plt.gca()  # Get current axis
 ax.set_xscale('log', base=2)  # Set log scale for x-axis to maintain equal spacing
 
