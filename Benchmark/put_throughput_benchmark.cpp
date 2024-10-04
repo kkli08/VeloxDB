@@ -10,6 +10,7 @@
 #include "../VeloxDB/VeloxDB.h"
 
 using namespace std::chrono;
+namespace fs = std::filesystem;
 
 // Constants for benchmark
 constexpr size_t MB = 1024 * 1024; // 1MB in bytes
@@ -55,15 +56,25 @@ void benchmarkPut(std::unique_ptr<VeloxDB>& db, size_t dataSizeMB, size_t memtab
     double throughput = static_cast<double>(dataSizeMB * 1000) / duration;
 
     // Write result to CSV
-    csvFile << memtableSize << "," << dataSizeMB << "," << throughput << std::endl;
+    csvFile << memtableSize / MB << "," << dataSizeMB << "," << throughput << std::endl;
 
     // Close the database
     db->Close();
 }
 
 int main() {
-    std::ofstream csvFile("put_throughput.csv");
-    csvFile << "MemtableSize,DataSizeMB,Throughput(MB/s)\n";
+    // Define the output directory for the CSV file
+    std::string outputDir = "../put_throughput";
+    std::string outputFilePath = outputDir + "/put_throughput.csv";
+
+    // Create the directory if it does not exist
+    if (!fs::exists(outputDir)) {
+        fs::create_directories(outputDir);
+    }
+
+    // Open CSV file for writing
+    std::ofstream csvFile(outputFilePath);
+    csvFile << "MemtableSizeMB,DataSizeMB,Throughput(MB/s)\n";
 
     // Benchmark configurations
     std::vector<size_t> memtableSizes = {1 * MB, 5 * MB, 10 * MB}; // Memtable sizes: 1MB, 5MB, 10MB
@@ -77,7 +88,8 @@ int main() {
     }
 
     csvFile.close();
-    std::cout << "Benchmark completed. Results saved to put_throughput.csv" << std::endl;
+    std::cout << "Benchmark completed. Results saved to " << outputFilePath << std::endl;
     return 0;
 }
+
 
