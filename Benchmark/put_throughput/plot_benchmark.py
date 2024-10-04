@@ -2,10 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Read the CSV file
-data = pd.read_csv("put_throughput.csv")
+data = pd.read_csv("linux_put_throughput.csv")
 
 # Pivot the data to get MemtableSize as columns and DataSizeMB as index
-pivot_data = data.pivot(index='DataSizeMB', columns='MemtableSize', values='Throughput(MB/s)')
+pivot_data = data.pivot(index='DataSizeMB', columns='MemtableSizeMB', values='Throughput(MB/s)')
 
 # Plot the graph
 pivot_data.plot(kind='line', marker='o')
