@@ -1,3 +1,6 @@
+//
+// Created by Damian Li on 2024-10-04.
+//
 #include <iostream>
 #include <chrono>
 #include <memory>
@@ -27,9 +30,9 @@ std::string generateRandomString(size_t length) {
     return result;
 }
 
-// Function to benchmark Put operation
-void benchmarkPut(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile) {
-    std::cout << "Benchmarking Put: MemtableSize = " << memtableSize / MB
+// Function to benchmark Get operation
+void benchmarkGet(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile) {
+    std::cout << "Benchmarking Get: MemtableSize = " << memtableSize / MB
               << "MB, DataSize = " << dataSizeMB << "MB" << std::endl;
 
     // Create the database object with the specified memtable size
@@ -38,27 +41,34 @@ void benchmarkPut(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile
     // Open the database
     db->Open(DB_NAME);
 
-    // Start timing
-    auto start = high_resolution_clock::now();
-
-    // Insert data
+    // Insert data first to populate the database
     size_t bytesInserted = 0;
+    std::vector<std::string> keys;
     while (bytesInserted < dataSizeMB * MB) {
         std::string key = generateRandomString(16);    // 16-byte key
         std::string value = generateRandomString(100); // 100-byte value
         db->Put(key, value);
+        keys.push_back(key);  // Save the key for later retrieval
         bytesInserted += key.size() + value.size();
+    }
+
+    // Start timing the Get operations
+    auto start = high_resolution_clock::now();
+
+    // Retrieve all inserted keys
+    for (const auto& key : keys) {
+        auto result = db->Get(key);
     }
 
     // Stop timing
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start).count();
 
-    // Calculate throughput in MB/s
-    double throughput = static_cast<double>(dataSizeMB * 1000) / duration;
+    // Calculate average latency in milliseconds
+    double average_latency = static_cast<double>(duration) / keys.size();
 
     // Write result to CSV
-    csvFile << memtableSize / MB << "," << dataSizeMB << "," << throughput << std::endl;
+    csvFile << memtableSize / MB << "," << dataSizeMB << "," << average_latency << std::endl;
 
     // Close the database
     db->Close();
@@ -79,8 +89,8 @@ int main() {
     srand(static_cast<unsigned>(time(nullptr)));
 
     // Define the output directory for the CSV file
-    std::string outputDir = "./put_throughput";
-    std::string outputFilePath = outputDir + "/put_throughput.csv";
+    std::string outputDir = "./get_latency";
+    std::string outputFilePath = outputDir + "/get_latency.csv";
 
     // Create the directory if it does not exist
     if (!fs::exists(outputDir)) {
@@ -89,7 +99,7 @@ int main() {
 
     // Open CSV file for writing
     std::ofstream csvFile(outputFilePath);
-    csvFile << "MemtableSizeMB,DataSizeMB,Throughput(MB/s)\n";
+    csvFile << "MemtableSizeMB,DataSizeMB,AverageLatency(ms)\n";
 
     // Benchmark configurations
     std::vector<size_t> memtableSizes = {1 * MB, 5 * MB, 10 * MB}; // Memtable sizes: 1MB, 5MB, 10MB
@@ -97,7 +107,7 @@ int main() {
     // Run benchmarks for each Memtable size and data size
     for (auto memtableSize : memtableSizes) {
         for (size_t dataSizeMB = START_DATA_SIZE_MB; dataSizeMB <= END_DATA_SIZE_MB; dataSizeMB *= 2) {
-            benchmarkPut(dataSizeMB, memtableSize, csvFile);
+            benchmarkGet(dataSizeMB, memtableSize, csvFile);
         }
     }
 
