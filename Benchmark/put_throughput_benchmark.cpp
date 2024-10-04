@@ -1,16 +1,14 @@
-//
-// Created by damian on 10/3/24.
-//
 #include <iostream>
 #include <chrono>
 #include <memory>
 #include <string>
 #include <fstream>
 #include <cstdlib>
+#include <filesystem>  // Include filesystem
 #include "../VeloxDB/VeloxDB.h"
 
-using namespace std::chrono;
 namespace fs = std::filesystem;
+using namespace std::chrono;
 
 // Constants for benchmark
 constexpr size_t MB = 1024 * 1024; // 1MB in bytes
@@ -30,8 +28,12 @@ std::string generateRandomString(size_t length) {
 }
 
 // Function to benchmark Put operation
-void benchmarkPut(std::unique_ptr<VeloxDB>& db, size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile) {
-    std::cout << "Benchmarking Put: MemtableSize = " << memtableSize / MB << "MB, DataSize = " << dataSizeMB << "MB" << std::endl;
+void benchmarkPut(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile) {
+    std::cout << "Benchmarking Put: MemtableSize = " << memtableSize / MB
+              << "MB, DataSize = " << dataSizeMB << "MB" << std::endl;
+
+    // Create the database object with the specified memtable size
+    auto db = std::make_unique<VeloxDB>(memtableSize, 3);  // Adjust other parameters as needed
 
     // Open the database
     db->Open(DB_NAME);
@@ -42,8 +44,8 @@ void benchmarkPut(std::unique_ptr<VeloxDB>& db, size_t dataSizeMB, size_t memtab
     // Insert data
     size_t bytesInserted = 0;
     while (bytesInserted < dataSizeMB * MB) {
-        std::string key = generateRandomString(16);  // 16-byte key
-        std::string value = generateRandomString(100);  // 100-byte value
+        std::string key = generateRandomString(16);    // 16-byte key
+        std::string value = generateRandomString(100); // 100-byte value
         db->Put(key, value);
         bytesInserted += key.size() + value.size();
     }
@@ -60,9 +62,22 @@ void benchmarkPut(std::unique_ptr<VeloxDB>& db, size_t dataSizeMB, size_t memtab
 
     // Close the database
     db->Close();
+
+    // Delete the database files to free up space
+    try {
+        if (fs::exists(DB_NAME)) {
+            fs::remove_all(DB_NAME);
+            std::cout << "Deleted database directory: " << DB_NAME << std::endl;
+        }
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Error deleting database directory: " << e.what() << std::endl;
+    }
 }
 
 int main() {
+    // Seed the random number generator
+    srand(static_cast<unsigned>(time(nullptr)));
+
     // Define the output directory for the CSV file
     std::string outputDir = "./put_throughput";
     std::string outputFilePath = outputDir + "/put_throughput.csv";
@@ -77,13 +92,12 @@ int main() {
     csvFile << "MemtableSizeMB,DataSizeMB,Throughput(MB/s)\n";
 
     // Benchmark configurations
-    std::vector<size_t> memtableSizes = {1 * MB, 5 * MB, 10 * MB}; // Memtable sizes: 1MB, 5MB, 10MB
+    std::vector<size_t> memtableSizes = {10 * MB, 15 * MB}; // Memtable sizes: 1MB, 5MB, 10MB
 
-    // Run benchmarks for each Memtable size and data size (2^n MB)
+    // Run benchmarks for each Memtable size and data size
     for (auto memtableSize : memtableSizes) {
-        auto db = std::make_unique<VeloxDB>(memtableSize, 3);  // Initialize VeloxDB with custom Memtable size
         for (size_t dataSizeMB = START_DATA_SIZE_MB; dataSizeMB <= END_DATA_SIZE_MB; dataSizeMB *= 2) {
-            benchmarkPut(db, dataSizeMB, memtableSize, csvFile);
+            benchmarkPut(dataSizeMB, memtableSize, csvFile);
         }
     }
 
@@ -91,5 +105,3 @@ int main() {
     std::cout << "Benchmark completed. Results saved to " << outputFilePath << std::endl;
     return 0;
 }
-
-
