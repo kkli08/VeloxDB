@@ -167,6 +167,14 @@ db->printCacheHit(); // this will print the total number of cache hit in buffer 
 // Clean up
 db->Close();
 ```
+
+### Benchmark
+
+#### `VeloxDB::Put` throughput with different `Memtable` size
+
+![](./Benchmark/put_throughput/put_throughput.png)
+
+
 ### SST Files Layout
 ```
 [Internal Node Page (Root)]
@@ -285,11 +293,11 @@ The KV-Store system has been tested across multiple platforms and compilers. Bel
 
 | Platform     | Compiler       | Status |
 |--------------|----------------|--------|
+| MacOS ARM64  | GCC            | ✅     |
 | Ubuntu ARM64 | GCC            | ✅     |
 | Ubuntu ARM64 | Clang          | ✅     |
 | Windows x86  | MSVC (cl)      | ✅     |
 
-### BenchMark
 
 ### Legacy Repo
 

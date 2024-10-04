@@ -92,7 +92,7 @@ int main() {
     csvFile << "MemtableSizeMB,DataSizeMB,Throughput(MB/s)\n";
 
     // Benchmark configurations
-    std::vector<size_t> memtableSizes = {10 * MB, 15 * MB}; // Memtable sizes: 1MB, 5MB, 10MB
+    std::vector<size_t> memtableSizes = {1 * MB, 5 * MB, 10 * MB, 15 * MB}; // Memtable sizes: 1MB, 5MB, 10MB
 
     // Run benchmarks for each Memtable size and data size
     for (auto memtableSize : memtableSizes) {
