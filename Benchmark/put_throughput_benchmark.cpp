@@ -12,7 +12,7 @@ using namespace std::chrono;
 
 // Constants for benchmark
 constexpr size_t MB = 1024 * 1024 / 128; // 1MB in bytes
-constexpr size_t START_DATA_SIZE_MB = 128;  // Start with 1 MB
+constexpr size_t START_DATA_SIZE_MB = 1;  // Start with 1 MB
 constexpr size_t END_DATA_SIZE_MB = 4096;  // End with 512 MB (adjust as needed)
 const std::string DB_NAME = "benchmark_db";
 
