@@ -4,7 +4,7 @@ MemtableSizeMB,DataSizeMB,Throughput(MB/s)
 25,4,inf
 25,8,inf
 25,16,inf
-25,32,6303.22
+25,32,inf
 25,64,25212.9
 25,128,25212.9
 25,256,25212.9

@@ -171,8 +171,13 @@ db->Close();
 ### Benchmark
 
 #### `VeloxDB::Put` throughput with different `Memtable` size
-
 ![](./Benchmark/put_throughput/put_throughput.png)
+
+#### `VeloxDB::Get` latency with different `Memtable` size
+![](./Benchmark/get_latency/get_latency.png)
+
+#### `VeloxDB::Scan` throughput with different `Memtable` size
+![](./Benchmark/scan_throughput/scan_throughput.png)
 
 
 ### SST Files Layout

@@ -38,7 +38,7 @@ plt.xlabel('Input Data Size (MB)')
 plt.ylabel('Throughput (MB/s)')
 
 # Set custom x-axis values and labels
-x_ticks = [2 ** i for i in range(1, 10)]  # Use 2, 4, 8, 16, 32, ..., 512
+x_ticks = [2 ** i for i in range(5, 13)]  # Use 2, 4, 8, 16, 32, ..., 512
 ax = plt.gca()  # Get current axis
 ax.set_xscale('log', base=2)  # Set log scale for x-axis to maintain equal spacing
 
@@ -47,7 +47,7 @@ ax.set_xticks(x_ticks)  # Set the position of the x ticks to match the values
 ax.set_xticklabels([str(x) for x in x_ticks])  # Set the labels to display the actual numbers
 
 # Customize the legend
-plt.legend(title='Memtable Size (MB)', loc='upper left', fontsize=9)
+plt.legend(title='Memtable Size (MB)', loc='upper right', fontsize=9)
 
 # Remove gridlines (disable gridlines)
 plt.grid(False)  # Completely remove all gridlines
