@@ -171,12 +171,24 @@ db->Close();
 ### Benchmark
 
 #### `VeloxDB::Put` throughput with different `Memtable` size
+```text
+    B Tree Degree = 3
+    page size = 4 kb
+```
 ![](./Benchmark/put_throughput/put_throughput.png)
 
 #### `VeloxDB::Get` latency with different `Memtable` size
+```text
+    B Tree Degree = 3
+    page size = 4 kb
+```
 ![](./Benchmark/get_latency/get_latency.png)
 
 #### `VeloxDB::Scan` throughput with different `Memtable` size
+```text
+    B Tree Degree = 3
+    page size = 4 kb
+```
 ![](./Benchmark/scan_throughput/scan_throughput.png)
 
 
@@ -306,6 +318,6 @@ The KV-Store system has been tested across multiple platforms and compilers. Bel
 
 ### Legacy Repo
 
-[KvDB](https://github.com/kkli08/KvDB)
+_[KvDB](https://github.com/kkli08/KvDB)_
 
-[KV-Store](https://github.com/kkli08/KV-Store)
+_[KV-Store](https://github.com/kkli08/KV-Store)_
