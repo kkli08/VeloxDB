@@ -305,6 +305,12 @@ message KeyValue {
 [//]: # (![UML]&#40;img/uml/kvdb_s2_uml_v2.1.jpg&#41;)
 
 
+### Supported Language
+| Language | Status |
+|----------|-------|
+| C++      | ✅     |
+| Rust     | ❎     |
+
 ### Supported Platforms and Compilers
 The KV-Store system has been tested across multiple platforms and compilers. Below is the current support status:
 
