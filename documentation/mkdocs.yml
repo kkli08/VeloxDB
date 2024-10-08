@@ -1,0 +1,37 @@
+site_name: VeloxDB Documentation
+
+nav:
+  - Home: index.md
+  - Module: api.md
+  - Benchmark: benchmark.md
+  - Layout: layout.md
+  - Database Design: design.md
+
+theme:
+  name: material
+#  name: bootstrap386
+#  name: terminal
+  icon:
+    logo: fontawesome/solid/database
+    repo: fontawesome/brands/github  # Set the repository icon to GitHub
+  features:
+    - navigation.instant             # Optional: Enable instant navigation (improves UX)
+    - icons.fontawesome              # Explicitly enable FontAwesome icons
+
+# GitHub repository link for the "Edit on GitHub" and icon in the top-right corner
+repo_url: https://github.com/kkli08/VeloxDB
+repo_name: "GitHub"
+
+# Extra configuration for social icons in the footer
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/kkli08/VeloxDB  # GitHub link for social icon
+
+# Recommended Markdown extensions for better documentation features
+markdown_extensions:
+  - admonition                      # Adds support for `!!! note`, `!!! tip`, etc.
+  - codehilite                      # Syntax highlighting for code blocks
+  - footnotes                       # Support for footnotes
+  - toc:
+      permalink: true               # Adds permalinks for table of contents headings
