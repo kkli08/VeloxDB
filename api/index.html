@@ -62,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#veloxdb" class="md-skip">
+        <a href="#database-operations" class="md-skip">
           Skip to content
         </a>
       
@@ -277,16 +277,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#veloxdb" class="md-nav__link">
-    <span class="md-ellipsis">
-      VeloxDB
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="VeloxDB">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#database-operations" class="md-nav__link">
     <span class="md-ellipsis">
       Database Operations
@@ -318,8 +308,8 @@
     </nav>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#data-operations" class="md-nav__link">
     <span class="md-ellipsis">
       Data Operations
@@ -378,8 +368,8 @@
     </nav>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#buffer-pool-operation" class="md-nav__link">
     <span class="md-ellipsis">
       Buffer Pool Operation
@@ -404,11 +394,6 @@
       printCacheHit()
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -510,16 +495,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#veloxdb" class="md-nav__link">
-    <span class="md-ellipsis">
-      VeloxDB
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="VeloxDB">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#database-operations" class="md-nav__link">
     <span class="md-ellipsis">
       Database Operations
@@ -551,8 +526,8 @@
     </nav>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#data-operations" class="md-nav__link">
     <span class="md-ellipsis">
       Data Operations
@@ -611,8 +586,8 @@
     </nav>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#buffer-pool-operation" class="md-nav__link">
     <span class="md-ellipsis">
       Buffer Pool Operation
@@ -644,11 +619,6 @@
     </nav>
   
 </li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
     </ul>
   
@@ -670,13 +640,6 @@
 
   <h1>Module</h1>
 
-<h2 id="veloxdb">VeloxDB<a class="headerlink" href="#veloxdb" title="Permanent link">&para;</a></h2>
-<p><img alt="Unit Tests" src="https://github.com/kkli08/VeloxDB/actions/workflows/cmake-unit-tests-multi-platform.yml/badge.svg" /></p>
-<p>VeloxDB is a persistent key-value store database library. It designed to store
-key-value pairs and allow efficient retrieval based on the key. This system is
-inspired by modern databases like <a href="https://github.com/google/leveldb">LevelDB</a>
-and <a href="https://github.com/facebook/rocksdb">RocksDB</a>, and supports multiple data
-types using C++ Templates and Protocol Buffers.</p>
 <h3 id="database-operations">Database Operations<a class="headerlink" href="#database-operations" title="Permanent link">&para;</a></h3>
 <h4 id="veloxdbopenstring-db_name"><strong><em>VeloxDB::Open(string db_name)</em></strong><a class="headerlink" href="#veloxdbopenstring-db_name" title="Permanent link">&para;</a></h4>
 <p>Initializes the database system, setting up the necessary files and directories (including SSTs and related data). Can be initialized with a custom Memtable size or default size of <code>1e3</code>.</p>
