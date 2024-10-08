@@ -2,7 +2,7 @@
 ### Database Operations
 
 #### **_VeloxDB::Open(string db_name)_**
-Initializes the database system, setting up the necessary files and directories (including SSTs and related data). Can be initialized with a custom Memtable size or default size of `1e3`.
+Initializes and open the database system, setting up the necessary files and directories (including SSTs and related data). Can be initialized with a custom Memtable size or default size of `1e3`.
 
 ```c++
 #include "VeloxDB/VeloxDB.h"
@@ -14,18 +14,18 @@ Initializes the database system, setting up the necessary files and directories 
 auto MyDBDefault = std::make_unique<VeloxDB>();
 auto MyDBDefault = std::make_unique<VeloxDB>(int memtableSize, int BTreeDegree);
 
-MyDBDefault->Open("database_name");
+MyDBDefault->Open("database_name"); // open
 ```
 
 #### **_VeloxDB::Close()_**
-Closes the database, flushing any data in memory (Memtable) to disk and storing it in SSTs.
+Close the database, flushing any data in memory (Memtable) to disk and storing it in SSTs.
 
 ```c++
 #include "VeloxDB/VeloxDB.h"
 // Close the database and flush the Memtable to disk
 auto MyDB = std::make_unique<VeloxDB>();
 MyDB->Open("database_name");
-MyDB->Close();
+MyDB->Close(); // close
 ```
 
 ### Data Operations
@@ -38,6 +38,7 @@ Inserts a key-value pair into the database, where both the key and value can be 
 // Example of inserting different data types
 auto MyDB = std::make_unique<VeloxDB>();
 MyDB->Open("database_name");
+// put
 MyDB->Put(1, 100);             // int -> int
 MyDB->Put(1.5, 'A');           // double -> char
 MyDB->Put("Hello", 1e8LL);     // string -> long long
@@ -57,7 +58,7 @@ MyDB->Put(1.5, 'A');
 MyDB->Put("Hello", 1e8LL);
 
 // Retrieve the value by key
-auto result1 = MyDB->Get("Hello");
+auto result1 = MyDB->Get("Hello"); // get
 long long value1 = result1.kv.long_value(); // 1e8
 string key1 = result1.kv.string_key(); // "Hello"
 
@@ -89,7 +90,7 @@ Scans the database for key-value pairs within a specified key range. The results
 auto MyDB = std::make_unique<VeloxDB>();
 MyDB->Open("database_name");
 // Scan by key
-std::set<KeyValueWrapper> results = MyDB->Scan(1, 10);
+std::set<KeyValueWrapper> results = MyDB->Scan(1, 10); // scan
 // Scan by `KeyValueWrapper` instance
 std::set<KeyValueWrapper> results = MyDB->Scan(KeyValueWrapper(1, ""), KeyValueWrapper(10, ""));
 ```
