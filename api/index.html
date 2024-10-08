@@ -642,7 +642,7 @@
 
 <h3 id="database-operations">Database Operations<a class="headerlink" href="#database-operations" title="Permanent link">&para;</a></h3>
 <h4 id="veloxdbopenstring-db_name"><strong><em>VeloxDB::Open(string db_name)</em></strong><a class="headerlink" href="#veloxdbopenstring-db_name" title="Permanent link">&para;</a></h4>
-<p>Initializes the database system, setting up the necessary files and directories (including SSTs and related data). Can be initialized with a custom Memtable size or default size of <code>1e3</code>.</p>
+<p>Initializes and open the database system, setting up the necessary files and directories (including SSTs and related data). Can be initialized with a custom Memtable size or default size of <code>1e3</code>.</p>
 <div class="codehilite"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;VeloxDB/VeloxDB.h&quot;</span>
 <span class="cm">/*</span>
 <span class="cm"> *  Initialize with default value : </span>
@@ -652,16 +652,16 @@
 <span class="k">auto</span><span class="w"> </span><span class="n">MyDBDefault</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">MyDBDefault</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">memtableSize</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">BTreeDegree</span><span class="p">);</span>
 
-<span class="n">MyDBDefault</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span>
+<span class="n">MyDBDefault</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// open</span>
 </code></pre></div>
 
 <h4 id="veloxdbclose"><strong><em>VeloxDB::Close()</em></strong><a class="headerlink" href="#veloxdbclose" title="Permanent link">&para;</a></h4>
-<p>Closes the database, flushing any data in memory (Memtable) to disk and storing it in SSTs.</p>
+<p>Close the database, flushing any data in memory (Memtable) to disk and storing it in SSTs.</p>
 <div class="codehilite"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;VeloxDB/VeloxDB.h&quot;</span>
 <span class="c1">// Close the database and flush the Memtable to disk</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">MyDB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span>
-<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Close</span><span class="p">();</span>
+<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Close</span><span class="p">();</span><span class="w"> </span><span class="c1">// close</span>
 </code></pre></div>
 
 <h3 id="data-operations">Data Operations<a class="headerlink" href="#data-operations" title="Permanent link">&para;</a></h3>
@@ -671,6 +671,7 @@
 <span class="c1">// Example of inserting different data types</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">MyDB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span>
+<span class="c1">// put</span>
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">);</span><span class="w">             </span><span class="c1">// int -&gt; int</span>
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span><span class="w"> </span><span class="sc">&#39;A&#39;</span><span class="p">);</span><span class="w">           </span><span class="c1">// double -&gt; char</span>
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e8L</span><span class="n">L</span><span class="p">);</span><span class="w">     </span><span class="c1">// string -&gt; long long</span>
@@ -688,7 +689,7 @@
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e8L</span><span class="n">L</span><span class="p">);</span>
 
 <span class="c1">// Retrieve the value by key</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">result1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">result1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// get</span>
 <span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">value1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result1</span><span class="p">.</span><span class="n">kv</span><span class="p">.</span><span class="n">long_value</span><span class="p">();</span><span class="w"> </span><span class="c1">// 1e8</span>
 <span class="n">string</span><span class="w"> </span><span class="n">key1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result1</span><span class="p">.</span><span class="n">kv</span><span class="p">.</span><span class="n">string_key</span><span class="p">();</span><span class="w"> </span><span class="c1">// &quot;Hello&quot;</span>
 
@@ -718,7 +719,7 @@
 <span class="k">auto</span><span class="w"> </span><span class="n">MyDB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span>
 <span class="c1">// Scan by key</span>
-<span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Scan</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span>
+<span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Scan</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span><span class="w"> </span><span class="c1">// scan</span>
 <span class="c1">// Scan by `KeyValueWrapper` instance</span>
 <span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Scan</span><span class="p">(</span><span class="n">KeyValueWrapper</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">KeyValueWrapper</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">));</span>
 </code></pre></div>
