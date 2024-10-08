@@ -80,6 +80,7 @@ add_library(veloxdb_lib STATIC
         Storage/PageManager/PageManager.cpp
         Storage/DiskBTree/DiskBTree.cpp
         Storage/SstFileManager/SstFileManager.cpp
+        Storage/BloomFilter/BloomFilter.cpp
 
         # VeloxDB
         VeloxDB/VeloxDB.cpp
