@@ -93,20 +93,27 @@ std::vector<size_t> BloomFilter::hash(const KeyValueWrapper& kv) const {
     // Serialize the key to a string (only the key, not the value)
     std::string keyString;
 
-    // Extract the key based on its type
-    if (kv.kv.has_int_key()) {
-        keyString = std::to_string(kv.kv.int_key());
-    } else if (kv.kv.has_long_key()) {
-        keyString = std::to_string(kv.kv.long_key());
-    } else if (kv.kv.has_double_key()) {
-        keyString = std::to_string(kv.kv.double_key());
-    } else if (kv.kv.has_string_key()) {
-        keyString = kv.kv.string_key();
-    } else if (kv.kv.has_char_key()) {
-        keyString = kv.kv.char_key();
-    } else {
-        // Handle error or empty key
-        keyString = "";
+    // Extract the key based on its type using key_case()
+    switch (kv.kv.key_case()) {
+        case KeyValue::kIntKey:
+            keyString = std::to_string(kv.kv.int_key());
+        break;
+        case KeyValue::kLongKey:
+            keyString = std::to_string(kv.kv.long_key());
+        break;
+        case KeyValue::kDoubleKey:
+            keyString = std::to_string(kv.kv.double_key());
+        break;
+        case KeyValue::kStringKey:
+            keyString = kv.kv.string_key();
+        break;
+        case KeyValue::kCharKey:
+            keyString = kv.kv.char_key();
+        break;
+        default:
+            // Handle error or empty key
+                keyString = "";
+        break;
     }
 
     // Seed for hash functions
@@ -128,6 +135,7 @@ std::vector<size_t> BloomFilter::hash(const KeyValueWrapper& kv) const {
 
     return hashValues;
 }
+
 
 size_t BloomFilter::getSerializedSize() const {
     size_t size = 0;

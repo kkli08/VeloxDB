@@ -335,6 +335,9 @@ TEST(PageTest, LeafNodeWithVariousKeyTypesSerializeDeserialize) {
     EXPECT_EQ(keyValues[3].kv.char_value(), std::string(1, 'Z'));
 }
 
+
+// currently the page size is set to be 4096, throw exception when exceeds.
+
 // // Test serialization and deserialization of a large Leaf Node page
 // TEST(PageTest, LargeLeafNodeSerializeDeserialize) {
 //     Page leafPage(Page::PageType::LEAF_NODE);
