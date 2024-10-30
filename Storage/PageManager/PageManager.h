@@ -15,6 +15,7 @@
 class PageManager {
 public:
     // Constructor
+    // default 4 KB page size
     PageManager(const std::string& fileName, size_t pageSize = 4096);
 
     // Destructor
@@ -39,11 +40,16 @@ public:
     void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
     long long getCacheHit() const {return bufferPool->getCacheHit();};
 
+    size_t getPageSize() const { return pageSize; }
+
+
 private:
     std::string fileName;
     size_t pageSize;
     std::fstream file;
     uint64_t nextPageOffset;
+
+    const size_t DEFAULT_PAGE_SIZE = 4096;
 
     std::shared_ptr<BufferPool> bufferPool;
     // Methods to manage file I/O

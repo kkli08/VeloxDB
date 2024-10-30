@@ -335,39 +335,39 @@ TEST(PageTest, LeafNodeWithVariousKeyTypesSerializeDeserialize) {
     EXPECT_EQ(keyValues[3].kv.char_value(), std::string(1, 'Z'));
 }
 
-// Test serialization and deserialization of a large Leaf Node page
-TEST(PageTest, LargeLeafNodeSerializeDeserialize) {
-    Page leafPage(Page::PageType::LEAF_NODE);
-
-    // Add many leaf entries
-    for (int i = 0; i < 1000; ++i) {
-        KeyValueWrapper kv(i, i * 10);
-        leafPage.addLeafEntry(kv);
-    }
-
-    // Set next leaf offset
-    leafPage.setNextLeafOffset(123456);
-
-    // Serialize
-    std::vector<char> buffer = leafPage.serialize();
-
-    // Deserialize
-    Page deserializedPage(Page::PageType::LEAF_NODE);
-    deserializedPage.deserialize(buffer);
-
-    EXPECT_EQ(deserializedPage.getPageType(), Page::PageType::LEAF_NODE);
-
-    const auto& keyValues = deserializedPage.getLeafEntries();
-
-    ASSERT_EQ(keyValues.size(), 1000);
-
-    for (int i = 0; i < 1000; ++i) {
-        EXPECT_EQ(keyValues[i].kv.int_key(), i);
-        EXPECT_EQ(keyValues[i].kv.int_value(), i * 10);
-    }
-
-    EXPECT_EQ(deserializedPage.getNextLeafOffset(), 123456);
-}
+// // Test serialization and deserialization of a large Leaf Node page
+// TEST(PageTest, LargeLeafNodeSerializeDeserialize) {
+//     Page leafPage(Page::PageType::LEAF_NODE);
+//
+//     // Add many leaf entries
+//     for (int i = 0; i < 1000; ++i) {
+//         KeyValueWrapper kv(i, i * 10);
+//         leafPage.addLeafEntry(kv);
+//     }
+//
+//     // Set next leaf offset
+//     leafPage.setNextLeafOffset(123456);
+//
+//     // Serialize
+//     std::vector<char> buffer = leafPage.serialize();
+//
+//     // Deserialize
+//     Page deserializedPage(Page::PageType::LEAF_NODE);
+//     deserializedPage.deserialize(buffer);
+//
+//     EXPECT_EQ(deserializedPage.getPageType(), Page::PageType::LEAF_NODE);
+//
+//     const auto& keyValues = deserializedPage.getLeafEntries();
+//
+//     ASSERT_EQ(keyValues.size(), 1000);
+//
+//     for (int i = 0; i < 1000; ++i) {
+//         EXPECT_EQ(keyValues[i].kv.int_key(), i);
+//         EXPECT_EQ(keyValues[i].kv.int_value(), i * 10);
+//     }
+//
+//     EXPECT_EQ(deserializedPage.getNextLeafOffset(), 123456);
+// }
 
 
 

@@ -1,7 +1,6 @@
 //
 // Created by damian on 9/24/24.
 //
-
 //
 // Page.h
 //
@@ -10,6 +9,7 @@
 #define PAGE_H
 
 #include "KeyValue.h"
+#include "BloomFilter.h" // Include the BloomFilter header
 #include <vector>
 #include <cstdint>
 #include <string>
@@ -21,7 +21,6 @@ public:
         INTERNAL_NODE = 0,
         LEAF_NODE = 1,
         SST_METADATA = 2
-        // Other types can be added later
     };
 
     // Constructor for different page types
@@ -48,11 +47,20 @@ public:
     void setNextLeafOffset(uint64_t offset);
     uint64_t getNextLeafOffset() const;
 
+    // Build and use Bloom filter for leaf nodes
+    void buildLeafBloomFilter(size_t m, size_t n);
+    bool leafBloomFilterContains(const KeyValueWrapper& kv) const;
+
     // SST Metadata specific methods
     void setMetadata(uint64_t rootOffset, uint64_t leafBegin, uint64_t leafEnd, const std::string& fileName);
     void getMetadata(uint64_t& rootOffset, uint64_t& leafBegin, uint64_t& leafEnd, std::string& fileName) const;
 
+    // Methods to set and get the SST Bloom filter in the metadata page
+    void setSSTBloomFilter(const std::vector<char>& bloomFilterData);
+    bool getSSTBloomFilter(std::vector<char>& bloomFilterData) const;
+
 private:
+    const size_t DEFAULT_PAGE_SIZE = 4096;
     // Common attributes
     PageType pageType;
     uint16_t numEntries; // Number of keys or key-value pairs
@@ -67,6 +75,10 @@ private:
     struct LeafNodeData {
         std::vector<KeyValueWrapper> keyValues;
         uint64_t nextLeafOffset; // Offset to next leaf node
+
+        // Bloom filter for the leaf node
+        BloomFilter bloomFilter;
+        bool hasBloomFilter = false;
     } leafNodeData;
 
     // For SST Metadata Page
@@ -75,6 +87,10 @@ private:
         uint64_t leafNodeBeginOffset;
         uint64_t leafNodeEndOffset;
         std::string fileName;
+
+        // SST Bloom filter
+        BloomFilter bloomFilter;
+        bool hasBloomFilter = false;
     } sstMetadata;
 
     // Helper methods for serialization
@@ -88,5 +104,3 @@ private:
 };
 
 #endif // PAGE_H
-
-

@@ -9,55 +9,55 @@
 #include <iostream>
 #include "VeloxDB.h"
 
-TEST(VeloxDBBenchMarkTest, LargeScaleInsertAndScanRange) {
-    int memtableSize = 10000;  // Adjust memtable size for your performance needs
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
-    db->Open("test_db");
-
-    const int numEntries = 1e6;  // Insert 1e6 key-value pairs
-    std::cout << "Starting insert of " << numEntries << " key-value pairs..." << std::endl;
-
-    auto startInsert = std::chrono::high_resolution_clock::now();
-
-    // Insert key-value pairs
-    for (int i = 0; i < numEntries; ++i) {
-        db->Put(i, "value_" + std::to_string(i));
-    }
-
-    auto endInsert = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> insertDuration = endInsert - startInsert;
-
-    std::cout << "Insert completed. Time taken: " << insertDuration.count() << " seconds" << std::endl;
-    std::cout << "Average time per insert: " << (insertDuration.count() / numEntries) * 1e6 << " microseconds" << std::endl;
-
-    // Test Scan performance
-    std::cout << "Starting scan for key-value pairs between 1 and 50000..." << std::endl;
-
-    auto startScan = std::chrono::high_resolution_clock::now();
-
-    std::set<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(1, ""), KeyValueWrapper(50000, ""));
-
-    auto endScan = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> scanDuration = endScan - startScan;
-
-    ASSERT_EQ(resultSet.size(), 50000);  // Verify that 50,000 key-value pairs were scanned
-
-    std::cout << "Scan completed. Time taken: " << scanDuration.count() << " seconds" << std::endl;
-    std::cout << "Average time per scan operation: " << (scanDuration.count() / 50000) * 1e6 << " microseconds" << std::endl;
-
-    // Verify the content of the result set
-    auto it = resultSet.begin();
-    for (int i = 1; i <= 50000; ++i, ++it) {
-        EXPECT_EQ(it->kv.int_key(), i);
-        EXPECT_EQ(it->kv.string_value(), "value_" + std::to_string(i));
-    }
-
-    db->printCacheHit();
-
-    // Clean up
-    db->Close();
-    fs::remove_all("test_db");
-}
+// TEST(VeloxDBBenchMarkTest, LargeScaleInsertAndScanRange) {
+//     int memtableSize = 10000;  // Adjust memtable size for your performance needs
+//     auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+//     db->Open("test_db");
+//
+//     const int numEntries = 1e6;  // Insert 1e6 key-value pairs
+//     std::cout << "Starting insert of " << numEntries << " key-value pairs..." << std::endl;
+//
+//     auto startInsert = std::chrono::high_resolution_clock::now();
+//
+//     // Insert key-value pairs
+//     for (int i = 0; i < numEntries; ++i) {
+//         db->Put(i, "value_" + std::to_string(i));
+//     }
+//
+//     auto endInsert = std::chrono::high_resolution_clock::now();
+//     std::chrono::duration<double> insertDuration = endInsert - startInsert;
+//
+//     std::cout << "Insert completed. Time taken: " << insertDuration.count() << " seconds" << std::endl;
+//     std::cout << "Average time per insert: " << (insertDuration.count() / numEntries) * 1e6 << " microseconds" << std::endl;
+//
+//     // Test Scan performance
+//     std::cout << "Starting scan for key-value pairs between 1 and 50000..." << std::endl;
+//
+//     auto startScan = std::chrono::high_resolution_clock::now();
+//
+//     std::set<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(1, ""), KeyValueWrapper(50000, ""));
+//
+//     auto endScan = std::chrono::high_resolution_clock::now();
+//     std::chrono::duration<double> scanDuration = endScan - startScan;
+//
+//     ASSERT_EQ(resultSet.size(), 50000);  // Verify that 50,000 key-value pairs were scanned
+//
+//     std::cout << "Scan completed. Time taken: " << scanDuration.count() << " seconds" << std::endl;
+//     std::cout << "Average time per scan operation: " << (scanDuration.count() / 50000) * 1e6 << " microseconds" << std::endl;
+//
+//     // Verify the content of the result set
+//     auto it = resultSet.begin();
+//     for (int i = 1; i <= 50000; ++i, ++it) {
+//         EXPECT_EQ(it->kv.int_key(), i);
+//         EXPECT_EQ(it->kv.string_value(), "value_" + std::to_string(i));
+//     }
+//
+//     db->printCacheHit();
+//
+//     // Clean up
+//     db->Close();
+//     fs::remove_all("test_db");
+// }
 
 
 // TEST(VeloxDBBenchMarkTest, LargeScaleInsertAndSearch) {

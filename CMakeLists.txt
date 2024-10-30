@@ -87,6 +87,10 @@ add_library(veloxdb_lib STATIC
         VeloxDB/VeloxDB.h
         VeloxDB/VeloxDB.tpp
 
+        # LSMTree
+        LSMTree/LSMTree.cpp
+        LSMTree/LSMTree.h
+
         # Generated Protobuf source files
         ${PROTO_SRCS}
 )
@@ -108,6 +112,7 @@ target_include_directories(veloxdb_lib PUBLIC
         ${PROJECT_SOURCE_DIR}/Tree/RedBlackTree
         ${PROJECT_SOURCE_DIR}/Tree/TreeNode
         ${PROJECT_SOURCE_DIR}/VeloxDB
+        ${PROJECT_SOURCE_DIR}/LSMTree
         ${CMAKE_CURRENT_BINARY_DIR}
         ${PROJECT_SOURCE_DIR}
         ${GENERATED_PROTO_DIR}
@@ -144,6 +149,7 @@ add_executable(runTests
         tests/SST_File_Manager_unittest.cpp
         tests/VeloxDB_api_unittest.cpp
         tests/veloxdb_GET_benchmark.cpp
+        tests/bloom_filter_unittests.cpp
 )
 
 # Include directories for runTests

@@ -169,7 +169,12 @@ db->Close();
 ```
 
 ### Benchmark
-
+> _Hardware Resources_
+```text
+System:     macOS Sonoma Version 14.3.1
+Chip:       Apple M3 Max
+Memory:     48 GB
+```
 #### `VeloxDB::Put` throughput with different `Memtable` size
 ```text
     B Tree Degree = 3

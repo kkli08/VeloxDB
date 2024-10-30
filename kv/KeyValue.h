@@ -26,9 +26,9 @@ public:
 
     // Print key-value pair
     void printKeyValue() const;
-    string keyValueTypeToString(KeyValue::KeyValueType type) const;
+    std::string keyValueTypeToString(KeyValue::KeyValueType type) const;
 
-    // Comparison operator for keys
+    // Comparison operators for keys
     bool operator<(const KeyValueWrapper& other) const;
     bool operator>(const KeyValueWrapper& other) const;
     bool operator<=(const KeyValueWrapper& other) const;
@@ -40,11 +40,18 @@ public:
     static KeyValueWrapper deserialize(std::istream& is);
 
     bool isEmpty() const;
+
     // Constructor from a Protobuf KeyValue message
-    explicit KeyValueWrapper(const KeyValue& keyValueProto) : kv(keyValueProto) {};
+    explicit KeyValueWrapper(const KeyValue& keyValueProto) : kv(keyValueProto), sequenceNumber(0) {}
+
     // Convert KeyValueWrapper to Protobuf KeyValue
-    KeyValue toProto() const { return kv; };
-    KeyValue kv;  // Protobuf-generated KeyValue object
+    KeyValue toProto() const { return kv; }
+
+    // Protobuf-generated KeyValue object
+    KeyValue kv;
+
+    // Sequence number for versioning
+    uint64_t sequenceNumber = 0;
 
     bool isDefault() const {
         // Check if the key is unset

@@ -8,15 +8,21 @@
 #include <fstream>
 using namespace std;
 
+// Serialization
 void KeyValueWrapper::serialize(std::ostream& os) const {
     kv.SerializeToOstream(&os);  // Use Protobuf serialization
+    // Serialize sequenceNumber
+    os.write(reinterpret_cast<const char*>(&sequenceNumber), sizeof(sequenceNumber));
 }
 
+// Deserialization
 KeyValueWrapper KeyValueWrapper::deserialize(std::istream& is) {
     KeyValue kv;
     kv.ParseFromIstream(&is);  // Use Protobuf deserialization
     KeyValueWrapper wrapper;
     wrapper.kv = kv;
+    // Deserialize sequenceNumber
+    is.read(reinterpret_cast<char*>(&wrapper.sequenceNumber), sizeof(wrapper.sequenceNumber));
     return wrapper;
 }
 
