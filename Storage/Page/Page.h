@@ -3,7 +3,7 @@
 #define PAGE_H
 
 #include "KeyValue.h"
-#include "BloomFilter.h" // Include the BloomFilter header
+#include "BloomFilter.h"
 #include <vector>
 #include <cstdint>
 #include <string>

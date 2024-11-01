@@ -17,7 +17,6 @@ Initializes the database system, setting up the necessary files and directories 
 /*
  *  Initialize with default value : 
  *       Memtable::size == 1e3
- *       SsTFileManager::DiskBTree::Degree == 3
  */ 
 auto MyDBDefault = std::make_unique<VeloxDB>();
 auto MyDBDefault = std::make_unique<VeloxDB>(int memtableSize);
@@ -151,7 +150,7 @@ print total number of cache hit in the buffer pool during the database operation
 #include "VeloxDB/VeloxDB.h"
 
 int memtableSize = 1e4; 
-auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+auto db = std::make_unique<VeloxDB>(memtableSize);
 db->Open("test_db");
 
 const int numEntries = 1e6;  // Insert 1e6 key-value pairs
