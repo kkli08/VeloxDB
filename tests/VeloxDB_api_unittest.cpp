@@ -75,7 +75,7 @@ TEST(VeloxDBTest, ReOpen) {
  */
 TEST(VeloxDBTest, BasicInsertAndGet) {
     int memtableSize = 1000;
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+    auto db = std::make_unique<VeloxDB>(memtableSize);
     db->Open("test_db");
 
     // Insert key-value pairs (int key, int value)
@@ -97,7 +97,7 @@ TEST(VeloxDBTest, BasicInsertAndGet) {
 
 TEST(VeloxDBTest, StringInsertAndGet) {
     int memtableSize = 1000;
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+    auto db = std::make_unique<VeloxDB>(memtableSize);
     db->Open("test_db");
 
     // Insert key-value pairs (string key, string value)
@@ -119,7 +119,7 @@ TEST(VeloxDBTest, StringInsertAndGet) {
 
 TEST(VeloxDBTest, MixedDataTypesInsertAndGet) {
     int memtableSize = 1000;
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+    auto db = std::make_unique<VeloxDB>(memtableSize);
     db->Open("test_db");
 
     // Insert key-value pairs with different types
@@ -150,7 +150,7 @@ TEST(VeloxDBTest, MixedDataTypesInsertAndGet) {
  */
 TEST(VeloxDBTest, BasicScanRange) {
     int memtableSize = 1000;
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+    auto db = std::make_unique<VeloxDB>(memtableSize);
     db->Open("test_db");
 
     // Insert key-value pairs (int key, int value)
@@ -182,7 +182,7 @@ TEST(VeloxDBTest, BasicScanRange) {
 
 TEST(VeloxDBTest, ScanNonExistentRange) {
     int memtableSize = 1000;
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+    auto db = std::make_unique<VeloxDB>(memtableSize);
     db->Open("test_db");
 
     // Insert key-value pairs
@@ -204,7 +204,7 @@ TEST(VeloxDBTest, ScanNonExistentRange) {
 TEST(VeloxDBTest, ScanSingleKeyValuePair) {
     // Set memtable size and create VeloxDB instance
     int memtableSize = 1000;
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+    auto db = std::make_unique<VeloxDB>(memtableSize);
     db->Open("test_db");
 
     // Insert key-value pairs
@@ -231,7 +231,7 @@ TEST(VeloxDBTest, ScanSingleKeyValuePair) {
  */
 TEST(VeloxDBTest, LargeScaleScan) {
     int memtableSize = 1000;
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+    auto db = std::make_unique<VeloxDB>(memtableSize);
     db->Open("test_db");
 
     // Insert 1000 key-value pairs
@@ -252,7 +252,7 @@ TEST(VeloxDBTest, LargeScaleScan) {
 
 TEST(VeloxDBTest, LargeScaleInsertAndScanRange) {
     int memtableSize = 1000;
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);
+    auto db = std::make_unique<VeloxDB>(memtableSize);
     db->Open("test_db");
 
     // Insert 100,000 key-value pairs (int key, string value)

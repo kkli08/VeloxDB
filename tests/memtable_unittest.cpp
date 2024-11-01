@@ -19,7 +19,7 @@ namespace fs = std::filesystem;
  * Memtable::get(KeyValueWrapper&) -> return KeyValueWrapper
  */
 TEST(MemtableTest, BasicInsertAndGet) {
-    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB");
     auto memtable = new Memtable(3, sstFileManager);  // Set a small threshold for testing
 
     // Insert a KeyValueWrapper pair (int key, int value)
@@ -36,7 +36,7 @@ TEST(MemtableTest, BasicInsertAndGet) {
 }
 
 TEST(MemtableTest, InsertMultipleKeyValuePairs) {
-    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB");
     auto memtable = new Memtable(3, sstFileManager);  // Set a small threshold for testing
 
     // Insert multiple KeyValueWrapper pairs
@@ -54,7 +54,7 @@ TEST(MemtableTest, InsertMultipleKeyValuePairs) {
 }
 
 TEST(MemtableTest, GetValueNotPresent) {
-    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB");
     auto memtable = new Memtable(3, sstFileManager);
 
     // Insert a KeyValueWrapper pair
@@ -69,7 +69,7 @@ TEST(MemtableTest, GetValueNotPresent) {
 }
 
 TEST(MemtableTest, InsertBeyondThreshold) {
-    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB");
     auto memtable = new Memtable(2, sstFileManager);  // Set a threshold of 2
 
     // Insert two KeyValueWrapper pairs (should not trigger a flush)
@@ -87,7 +87,7 @@ TEST(MemtableTest, InsertBeyondThreshold) {
 }
 
 TEST(MemtableTest, ResetCurrentSizeAfterFlush) {
-    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB");
     auto memtable = new Memtable(2, sstFileManager);
 
     // Insert three KeyValueWrapper pairs (should trigger a flush after the second)
@@ -108,7 +108,7 @@ TEST(MemtableTest, ResetCurrentSizeAfterFlush) {
  * This test checks that multiple flushes can occur as the threshold is reached multiple times.
  */
 TEST(MemtableTest, MultipleFlushesWithThreshold) {
-    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB");
     auto memtable = new Memtable(2, sstFileManager);
 
     // First flush
@@ -133,7 +133,7 @@ TEST(MemtableTest, MultipleFlushesWithThreshold) {
  * Unit Tests for Scan method in Memtable
  */
 TEST(MemtableTest, ScanRange) {
-    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB", 3);
+    auto sstFileManager = std::make_shared<SSTFileManager>("defaultDB");
     auto memtable = new Memtable(10, sstFileManager);
 
     // Insert some KeyValueWrapper pairs

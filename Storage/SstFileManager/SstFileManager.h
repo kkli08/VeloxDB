@@ -17,7 +17,7 @@
 class SSTFileManager {
 public:
     // Constructor
-    SSTFileManager(const std::string& dbDirectory, int degree);
+    SSTFileManager(const std::string& dbDirectory);
 
     // Flush memtable to SST file
     void flushMemtable(const std::vector<KeyValueWrapper>& keyValues);

@@ -36,7 +36,7 @@ void benchmarkGet(size_t dataSizeMB, size_t memtableSize, std::ofstream& csvFile
               << "MB, DataSize = " << dataSizeMB << "MB" << std::endl;
 
     // Create the database object with the specified memtable size
-    auto db = std::make_unique<VeloxDB>(memtableSize, 3);  // Adjust other parameters as needed
+    auto db = std::make_unique<VeloxDB>(memtableSize);  // Adjust other parameters as needed
 
     // Open the database
     db->Open(DB_NAME);

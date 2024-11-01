@@ -53,7 +53,7 @@ TEST(SSTFileManagerTest, FlushSingleMemtable) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Generate test data
     auto keyValues = generateSequentialKeyValues(0, 100);
@@ -76,7 +76,7 @@ TEST(SSTFileManagerTest, FlushMultipleMemtables) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Generate and flush multiple memtables
     for (int i = 0; i < 5; ++i) {
@@ -99,7 +99,7 @@ TEST(SSTFileManagerTest, FlushEmptyMemtable) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush empty memtable
     std::vector<KeyValueWrapper> keyValues;
@@ -120,7 +120,7 @@ TEST(SSTFileManagerTest, FlushLargeMemtable) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Generate large dataset
     auto keyValues = generateSequentialKeyValues(0, 10000);
@@ -146,7 +146,7 @@ TEST(SSTFileManagerTest, FlushMemtableCreatesCorrectSSTFiles) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Generate test data
     auto keyValues = generateSequentialKeyValues(0, 100);
@@ -179,7 +179,7 @@ TEST(SSTFileManagerTest, SearchKeyInMostRecentSST) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush two memtables
     auto keyValues1 = generateSequentialKeyValues(0, 100);
@@ -208,7 +208,7 @@ TEST(SSTFileManagerTest, SearchKeyInOlderSSTs) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush multiple memtables
     for (int i = 0; i < 5; ++i) {
@@ -236,7 +236,7 @@ TEST(SSTFileManagerTest, SearchNonExistentKey) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush memtable
     auto keyValues = generateSequentialKeyValues(0, 100);
@@ -257,7 +257,7 @@ TEST(SSTFileManagerTest, SearchLargeNumberOfSSTs) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush many small memtables with keys at intervals of 25
     for (int i = 0; i < 20; ++i) {
@@ -293,7 +293,7 @@ TEST(SSTFileManagerTest, SearchWithLargeDataset) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Generate and flush large datasets
     for (int i = 0; i < 5; ++i) {
@@ -326,7 +326,7 @@ TEST(SSTFileManagerTest, ScanRangeAcrossMultipleSSTs) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush multiple memtables
     for (int i = 0; i < 5; ++i) {
@@ -358,7 +358,7 @@ TEST(SSTFileManagerTest, ScanRangeWithinSingleSST) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush a single memtable
     auto keyValues = generateSequentialKeyValues(0, 500);
@@ -388,7 +388,7 @@ TEST(SSTFileManagerTest, ScanNoMatchingKeys) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush memtable
     auto keyValues = generateSequentialKeyValues(0, 100);
@@ -412,7 +412,7 @@ TEST(SSTFileManagerTest, ScanWithLargeDataset) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Generate and flush large datasets
     for (int i = 0; i < 10; ++i) {
@@ -444,7 +444,7 @@ TEST(SSTFileManagerTest, ScanOverlappingKeysAcrossSSTs) {
     cleanUpDirectory(testDir);
     std::filesystem::create_directory(testDir);
 
-    SSTFileManager manager(testDir, degree);
+    SSTFileManager manager(testDir);
 
     // Flush overlapping memtables
     auto keyValues1 = generateSequentialKeyValues(0, 200);

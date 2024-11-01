@@ -14,14 +14,14 @@ class VeloxDB {
         // constructor
         VeloxDB()
                     : memtable_size(1e4),
-    sstFileManager(std::make_shared<SSTFileManager>("defaultDB", 3)), // Create shared SSTFileManager
+    sstFileManager(std::make_shared<SSTFileManager>("defaultDB")), // Create shared SSTFileManager
 memtable(std::make_unique<Memtable>(memtable_size, sstFileManager)) {
             // std::cout << "VeloxDB initialized with memtable size: " << memtable_size << std::endl;
         };
 
-        VeloxDB(int memtable_size, int BTreeDegree)
+        VeloxDB(int memtable_size)
                     : memtable_size(memtable_size),
-                      sstFileManager(std::make_shared<SSTFileManager>("defaultDB", BTreeDegree)),
+                      sstFileManager(std::make_shared<SSTFileManager>("defaultDB")),
                       memtable(make_unique<Memtable>(memtable_size, sstFileManager)) {
             // std::cout << "VeloxDB initialized with memtable size: " << memtable_size << std::endl;
         };

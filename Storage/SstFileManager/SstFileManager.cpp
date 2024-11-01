@@ -15,7 +15,7 @@
 namespace fs = std::filesystem;
 
 // Constructor
-SSTFileManager::SSTFileManager(const std::string& dbDirectory, int degree)
+SSTFileManager::SSTFileManager(const std::string& dbDirectory)
     : dbDirectory(dbDirectory), degree(degree) {
     // std::cout << "SSTFileManager initialized with directory: " << dbDirectory << " and degree: " << degree << std::endl;
     // Ensure the database directory exists
