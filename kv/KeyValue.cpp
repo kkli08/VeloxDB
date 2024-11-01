@@ -243,6 +243,9 @@ std::string KeyValueWrapper::keyValueTypeToString(KeyValue::KeyValueType type) c
     }
 }
 
+size_t KeyValueWrapper::getSerializedSize() const {
+    return sizeof(kv.key_case()) + sizeof(kv.value_case()) + sizeof(kv.key_type()) + sizeof(kv.value_type()) + sizeof(size_t);
+}
 
 
 

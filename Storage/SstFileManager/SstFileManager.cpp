@@ -25,7 +25,7 @@ SSTFileManager::SSTFileManager(const std::string& dbDirectory, int degree)
     // Initialize by loading existing SST files if any
     for (const auto& entry : std::filesystem::directory_iterator(dbDirectory)) {
         if (entry.path().extension() == ".sst") {
-            auto sst = std::make_shared<DiskBTree>(entry.path().string(), degree);
+            auto sst = std::make_shared<DiskBTree>(entry.path().string());
             sstFiles.push_back(sst);
         }
     }
@@ -44,7 +44,7 @@ void SSTFileManager::flushMemtable(const std::vector<KeyValueWrapper>& keyValues
     std::string sstFileName = generateSSTFileName();
 
     // Create a new DiskBTree instance for the SST file
-    auto sst = std::make_shared<DiskBTree>(sstFileName, degree, keyValues);
+    auto sst = std::make_shared<DiskBTree>(sstFileName, keyValues);
 
     // Add the new SST to the list
     sstFiles.push_back(sst);

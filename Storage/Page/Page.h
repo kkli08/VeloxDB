@@ -1,10 +1,4 @@
-//
-// Created by damian on 9/24/24.
-//
-//
 // Page.h
-//
-
 #ifndef PAGE_H
 #define PAGE_H
 
@@ -25,6 +19,8 @@ public:
 
     // Constructor for different page types
     Page(PageType type);
+    Page();
+
 
     // Serialize the page to a byte buffer
     std::vector<char> serialize() const;
@@ -43,12 +39,14 @@ public:
 
     // Leaf Node specific methods
     void addLeafEntry(const KeyValueWrapper& kv);
+    void removeLastLeafEntry();
     const std::vector<KeyValueWrapper>& getLeafEntries() const;
     void setNextLeafOffset(uint64_t offset);
     uint64_t getNextLeafOffset() const;
 
     // Build and use Bloom filter for leaf nodes
     void buildLeafBloomFilter(size_t m, size_t n);
+    void addToLeafBloomFilter(const KeyValueWrapper& kv);
     bool leafBloomFilterContains(const KeyValueWrapper& kv) const;
 
     // SST Metadata specific methods
@@ -58,6 +56,9 @@ public:
     // Methods to set and get the SST Bloom filter in the metadata page
     void setSSTBloomFilter(const std::vector<char>& bloomFilterData);
     bool getSSTBloomFilter(std::vector<char>& bloomFilterData) const;
+
+    // Estimate the base size of the page for serialization
+    size_t getBaseSize() const;
 
 private:
     const size_t DEFAULT_PAGE_SIZE = 4096;

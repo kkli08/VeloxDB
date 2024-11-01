@@ -53,7 +53,7 @@ TEST(DiskBTreeTest, ConstructorBuildsTree) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(100);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Check that the file was created
     EXPECT_TRUE(fs::exists(sstFileName));
@@ -72,11 +72,11 @@ TEST(DiskBTreeTest, ConstructorOpensExistingTree) {
 
     // Create DiskBTree and build tree
     {
-        DiskBTree btree(sstFileName, 3, keyValues);
+        DiskBTree btree(sstFileName, keyValues);
     }
 
     // Open existing DiskBTree
-    DiskBTree btree(sstFileName, 3);
+    DiskBTree btree(sstFileName);
 
     // Check that the file exists
     EXPECT_TRUE(fs::exists(sstFileName));
@@ -94,7 +94,7 @@ TEST(DiskBTreeTest, GetFileName) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(10);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Get file name
     EXPECT_EQ(btree.getFileName(), sstFileName);
@@ -120,7 +120,7 @@ TEST(DiskBTreeTest, SearchLessKeys) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(10);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Search for existing keys
     for (int i = 0; i < 10; ++i) {
@@ -155,7 +155,7 @@ TEST(DiskBTreeTest, SearchExistingKeys) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(1000);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Search for existing keys
     for (int i = 0; i < 1000; i += 100) {
@@ -181,7 +181,8 @@ TEST(DiskBTreeTest, SearchNonExistingKeys) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(1000);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
+    std::cout << "Successfully creating sst file" << std::endl;
 
     // Search for non-existing keys
     for (int i = 1001; i < 1100; ++i) {
@@ -203,7 +204,7 @@ TEST(DiskBTreeTest, SearchLargeDataset) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(dataSize);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 50, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Search for existing keys
     for (size_t i = 0; i < dataSize; i += 10000) {
@@ -230,7 +231,7 @@ TEST(DiskBTreeTest, ScanSmallRange) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(100);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Scan a range
     std::vector<KeyValueWrapper> result;
@@ -256,7 +257,7 @@ TEST(DiskBTreeTest, ScanFullRange) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(1000);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Scan the full range
     std::vector<KeyValueWrapper> result;
@@ -283,7 +284,7 @@ TEST(DiskBTreeTest, ScanLargeDataset) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(dataSize);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 50, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Scan a range
     std::vector<KeyValueWrapper> result;
@@ -309,7 +310,7 @@ TEST(DiskBTreeTest, ScanNoResults) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(1000);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Scan a range with no results
     std::vector<KeyValueWrapper> result;
@@ -332,12 +333,12 @@ TEST(DiskBTreeTest, DestructorTest) {
 
     // Create and destroy DiskBTree
     {
-        DiskBTree btree(sstFileName, 3, keyValues);
+        DiskBTree btree(sstFileName, keyValues);
     }
 
     // Reopen and destroy
     {
-        DiskBTree btree(sstFileName, 3);
+        DiskBTree btree(sstFileName);
     }
 
     // If no exceptions occurred, the destructor works correctly
@@ -347,22 +348,6 @@ TEST(DiskBTreeTest, DestructorTest) {
     cleanUp(sstFileName);
 }
 
-// Test constructor with invalid degree (edge case)
-TEST(DiskBTreeTest, ConstructorInvalidDegree) {
-    std::string sstFileName = "test_sst_invalid_degree.sst";
-    cleanUp(sstFileName);
-
-    // Generate test data
-    std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(100);
-
-    // Attempt to create DiskBTree with invalid degree
-    EXPECT_THROW({
-        DiskBTree btree(sstFileName, 0, keyValues);
-    }, std::invalid_argument);
-
-    // Clean up
-    cleanUp(sstFileName);
-}
 
 // Test search method with string keys
 TEST(DiskBTreeTest, SearchStringKeys) {
@@ -382,7 +367,7 @@ TEST(DiskBTreeTest, SearchStringKeys) {
     std::sort(keyValues.begin(), keyValues.end());
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Search for existing key
     KeyValueWrapper* result = btree.search(KeyValueWrapper("banana", ""));
@@ -415,7 +400,7 @@ TEST(DiskBTreeTest, ScanStringKeys) {
     std::sort(keyValues.begin(), keyValues.end());
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 3, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Scan a range
     std::vector<KeyValueWrapper> result;
@@ -441,7 +426,7 @@ TEST(DiskBTreeTest, SearchPerformanceTest) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(dataSize);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 50, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Perform multiple searches
     for (size_t i = 0; i < dataSize; i += 100000) {
@@ -465,7 +450,7 @@ TEST(DiskBTreeTest, ScanPerformanceTest) {
     std::vector<KeyValueWrapper> keyValues = generateIntKeyValues(dataSize);
 
     // Create DiskBTree
-    DiskBTree btree(sstFileName, 50, keyValues);
+    DiskBTree btree(sstFileName, keyValues);
 
     // Scan the entire range
     std::vector<KeyValueWrapper> result;

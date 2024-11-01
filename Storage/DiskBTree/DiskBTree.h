@@ -1,32 +1,35 @@
-//
-// Created by damian on 9/24/24.
-//
-
-//
 // DiskBTree.h
-//
 
 #ifndef DISK_BTREE_H
 #define DISK_BTREE_H
 
-#include "PageManager.h"
-#include "Page.h"
-#include "KeyValue.h"
 #include <string>
 #include <vector>
-#include <memory>
-#include <unordered_map>
+#include <cstdint>
+#include <cmath>
+#include "KeyValue.h"
+#include "PageManager.h"
+#include "BloomFilter.h"
 
 class DiskBTree {
 public:
     // Constructor for building a new B+ tree from memtable data
-    DiskBTree(const std::string& sstFileName, int degree, const std::vector<KeyValueWrapper>& keyValues);
+    DiskBTree(const std::string& sstFileName, const std::vector<KeyValueWrapper>& keyValues, size_t pageSize = 4096);
 
     // Constructor for opening an existing SST file
-    DiskBTree(const std::string& sstFileName, int degree);
+    DiskBTree(const std::string& sstFileName);
 
     // Destructor
     ~DiskBTree();
+
+    // Get the SST file name
+    std::string getFileName() const;
+
+    // Set buffer pool parameters
+    void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+
+    // Get cache hit count
+    long long getCacheHit() const;
 
     // Search for a key in the B+ tree
     KeyValueWrapper* search(const KeyValueWrapper& kv);
@@ -34,64 +37,66 @@ public:
     // Scan keys within a range
     void scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result);
 
-    // Get the SST file name
-    std::string getFileName() const;
-
-    // set degree
-    void setDegree(int _degree) {degree = _degree;};
-
-    // Set buffer pool parameters
-    void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
-    long long getCacheHit() const {return pageManager.getCacheHit();};
-
 private:
-    // B+ tree degree
-    int degree;
-
     // PageManager for disk I/O
     PageManager pageManager;
 
     // Offset of the root node
     uint64_t rootOffset;
 
+    // Leaf node begin and end offsets
+    uint64_t leafBeginOffset;
+    uint64_t leafEndOffset;
+
     // File name of the SST file
     std::string sstFileName;
 
-    // In-memory representation of a node during construction
+    // Page size
+    size_t pageSize;
+
+    // Degree and height of the B+ tree
+    size_t degree;
+    size_t height;
+
+    // Fields used during SST building
+    // BTreeNode struct representing different types of nodes
     struct BTreeNode {
         bool isLeaf;
         std::vector<KeyValueWrapper> keys;
-        std::vector<std::shared_ptr<BTreeNode>> children; // For internal nodes
-        uint64_t selfOffset;                              // Offset of this node on disk
+        std::vector<BTreeNode*> children;        // For internal nodes
+        std::vector<size_t> leafPageIndices;     // For nodes pointing to leaf pages
 
-        // Constructor
-        BTreeNode(bool isLeaf);
+        uint64_t offset; // Offset of the node in the SST file
 
-        // Methods used during tree construction
-        void insertNonFull(const KeyValueWrapper& kv, int degree);
-        void splitChild(int idx, int degree);
-
-        // Method to write the node and its children to disk
-        void writeNode(DiskBTree* tree);
-
-        // Set the offset after writing to disk
-        void setOffset(uint64_t offset);
+        BTreeNode(bool leaf) : isLeaf(leaf), offset(0) {}
     };
 
-    // Build B+ tree from sorted key-values
-    std::shared_ptr<BTreeNode> buildTree(const std::vector<KeyValueWrapper>& keyValues);
+    // Vector of leaf pages
+    std::vector<Page> leafPages;
 
-    // Methods for search and scan
-    KeyValueWrapper* searchInNode(uint64_t nodeOffset, const KeyValueWrapper& kv);
-    void scanInNode(uint64_t nodeOffset, const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result);
+    // Vector of smallest keys from each leaf page
+    std::vector<KeyValueWrapper> leafPageSmallestKeys;
 
+    // Root node of the tree
+    BTreeNode* root;
+
+    // For memory management
+    std::vector<BTreeNode*> allNodes; // To keep track of all nodes for deletion
+
+    // Levels of the tree, from leaf level upwards
+    std::vector<std::vector<BTreeNode*>> levels;
+
+    // Method to split input keyValues into leaf pages
+    void splitInputPairs(const std::vector<KeyValueWrapper>& keyValues);
+
+    // Method to compute degree and height
+    void computeDegreeAndHeight();
+
+    // Method to build the tree
+    void buildTree();
+
+    // Method to write the tree into the SST file
+    void writeTreeToSST();
 };
 
 #endif // DISK_BTREE_H
-
-
-
-
-
-
-

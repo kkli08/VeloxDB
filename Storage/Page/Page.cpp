@@ -1,9 +1,4 @@
-//
-// Created by damian on 9/24/24.
-//
-//
 // Page.cpp
-//
 
 #include "Page.h"
 #include <cstring>
@@ -16,6 +11,8 @@ Page::Page(PageType type) : pageType(type), numEntries(0) {
         leafNodeData.nextLeafOffset = 0;
     }
 }
+
+Page::Page(): numEntries(0) {}
 
 // Add a key to the internal node
 void Page::addKey(const KeyValueWrapper& key) {
@@ -53,8 +50,24 @@ void Page::addLeafEntry(const KeyValueWrapper& kv) {
     numEntries++;
 }
 
+// Remove the last leaf entry
+void Page::removeLastLeafEntry() {
+    if (pageType != PageType::LEAF_NODE) {
+        throw std::logic_error("Attempting to remove leaf entry from non-leaf page");
+    }
+    if (!leafNodeData.keyValues.empty()) {
+        leafNodeData.keyValues.pop_back();
+        numEntries--;
+    } else {
+        throw std::runtime_error("No leaf entries to remove");
+    }
+}
+
 // Get leaf node entries
 const std::vector<KeyValueWrapper>& Page::getLeafEntries() const {
+    if (pageType != PageType::LEAF_NODE) {
+        throw std::logic_error("Attempting to get leaf entries from non-leaf page");
+    }
     return leafNodeData.keyValues;
 }
 
@@ -145,12 +158,21 @@ std::vector<char> Page::serialize() const {
     }
 
     // After serializing the page
-    // At the end of Page::serialize()
     if (buffer.size() > DEFAULT_PAGE_SIZE) {
         std::cerr << "Serialized page size: " << buffer.size() << " bytes\n";
+        std::cerr << "Serialized page type: "
+                  << [](PageType type) {
+                      switch (type) {
+                          case PageType::INTERNAL_NODE: return "INTERNAL_NODE";
+                          case PageType::LEAF_NODE: return "LEAF_NODE";
+                          case PageType::SST_METADATA: return "SST_METADATA";
+                          default: return "UNKNOWN";
+                      }
+                    }(pageType)
+                 << std::endl;
+
         throw std::runtime_error("Page::serialize() --> Serialized page exceeds the maximum page size");
     }
-
 
     return buffer;
 }
@@ -270,18 +292,17 @@ void Page::serializeLeafNode(std::vector<char>& buffer) const {
 
     if (leafNodeData.hasBloomFilter) {
         // Before serializing the Bloom filter
-        if (leafNodeData.hasBloomFilter) {
-            size_t bloomFilterSize = leafNodeData.bloomFilter.getSerializedSize();
-            std::cout << "Leaf Bloom filter size: " << bloomFilterSize << " bytes\n";
-        }
+        size_t bloomFilterSize = leafNodeData.bloomFilter.getSerializedSize();
+        // debug information
+        // std::cout << "Leaf Bloom filter size: " << bloomFilterSize << " bytes\n";
 
         // Serialize Bloom filter
         std::vector<char> bloomFilterData = leafNodeData.bloomFilter.serialize();
-        uint32_t bloomFilterSize = static_cast<uint32_t>(bloomFilterData.size());
+        uint32_t bloomFilterSize32 = static_cast<uint32_t>(bloomFilterData.size());
 
         // Serialize bloomFilterSize
-        buffer.insert(buffer.end(), reinterpret_cast<const char*>(&bloomFilterSize),
-                      reinterpret_cast<const char*>(&bloomFilterSize) + sizeof(bloomFilterSize));
+        buffer.insert(buffer.end(), reinterpret_cast<const char*>(&bloomFilterSize32),
+                      reinterpret_cast<const char*>(&bloomFilterSize32) + sizeof(bloomFilterSize32));
 
         // Serialize Bloom filter data
         buffer.insert(buffer.end(), bloomFilterData.begin(), bloomFilterData.end());
@@ -447,10 +468,18 @@ void Page::buildLeafBloomFilter(size_t m, size_t n) {
         throw std::logic_error("Attempting to build Bloom filter on non-leaf page");
     }
     leafNodeData.bloomFilter = BloomFilter(m, n);
-    for (const auto& kv : leafNodeData.keyValues) {
-        leafNodeData.bloomFilter.add(kv);
-    }
     leafNodeData.hasBloomFilter = true;
+}
+
+// Add to leaf Bloom filter
+void Page::addToLeafBloomFilter(const KeyValueWrapper& kv) {
+    if (pageType != PageType::LEAF_NODE) {
+        throw std::logic_error("Attempting to add to Bloom filter on non-leaf page");
+    }
+    if (!leafNodeData.hasBloomFilter) {
+        throw std::runtime_error("Bloom filter has not been initialized");
+    }
+    leafNodeData.bloomFilter.add(kv);
 }
 
 // Check if a key possibly exists in the leaf node
@@ -463,4 +492,37 @@ bool Page::leafBloomFilterContains(const KeyValueWrapper& kv) const {
         return true;
     }
     return leafNodeData.bloomFilter.possiblyContains(kv);
+}
+
+// Estimate the base size of the page for serialization
+size_t Page::getBaseSize() const {
+    size_t size = sizeof(PageType) + sizeof(uint16_t); // pageType and numEntries
+    switch (pageType) {
+        case PageType::INTERNAL_NODE:
+            // For internal node, size of numKeys and numChildOffsets
+            size += sizeof(uint16_t) * 2;
+            break;
+        case PageType::LEAF_NODE:
+            // For leaf node, size of numPairs and nextLeafOffset, hasBloomFilter flag
+            size += sizeof(uint16_t); // numPairs
+            size += sizeof(uint64_t); // nextLeafOffset
+            size += sizeof(uint8_t); // hasBloomFilter
+            if (leafNodeData.hasBloomFilter) {
+                size += sizeof(uint32_t); // bloomFilterSize
+                size += leafNodeData.bloomFilter.getSerializedSize();
+            }
+            break;
+        case PageType::SST_METADATA:
+            // For SST metadata, sizes of offsets and file name length
+            size += sizeof(uint64_t) * 3; // rootPageOffset, leafNodeBeginOffset, leafNodeEndOffset
+            size += sizeof(uint32_t); // nameSize
+            size += sstMetadata.fileName.size(); // fileName
+            size += sizeof(uint8_t); // hasBloomFilter
+            if (sstMetadata.hasBloomFilter) {
+                size += sizeof(uint32_t); // bloomFilterSize
+                size += sstMetadata.bloomFilter.getSerializedSize();
+            }
+            break;
+    }
+    return size;
 }

@@ -58,7 +58,7 @@ public:
         return kv.key_case() == KeyValue::KEY_NOT_SET && kv.value_case() == KeyValue::VALUE_NOT_SET;
     }
 
-
+    size_t getSerializedSize() const;
 
 private:
 
