@@ -527,19 +527,19 @@
   <h1>Layout</h1>
 
 <h3 id="sst-files-layout">SST Files Layout<a class="headerlink" href="#sst-files-layout" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="k">[Internal Node Page (Root)]</span>
-<span class="k">[Internal Node Page 1]</span>
-<span class="k">[Internal Node Page 2]</span>
-<span class="na">...</span>
-<span class="k">[Internal Node Page n]</span>
+<div class="codehilite"><pre><span></span><code><span class="k">[SST Metadata Page]</span>
 <span class="k">[Leaf Node Page 1]</span>
 <span class="k">[Leaf Node Page 2]</span>
 <span class="k">[Leaf Node Page 3]</span>
 <span class="na">...</span>
 <span class="k">[Leaf Node Page m]</span>
+<span class="k">[Internal Node Page (Root)]</span>
+<span class="k">[Internal Node Page 1]</span>
+<span class="k">[Internal Node Page 2]</span>
+<span class="na">...</span>
+<span class="k">[Internal Node Page n]</span>
 <span class="k">[* Clustered Index Page]</span>
 <span class="k">[* Bloom Filter Page]</span>
-<span class="k">[SST Metadata Page]</span>
 </code></pre></div>
 
 <h4 id="pagepagesize"><code>Page::PageSize</code><a class="headerlink" href="#pagepagesize" title="Permanent link">&para;</a></h4>
@@ -547,9 +547,16 @@
 <p>Page with <code>PageSize::</code> <strong>PageSize</strong> (<code>4KB</code>, <code>8KB</code>)</p>
 </blockquote>
 <h4 id="pagesst_metadata"><code>Page::SST_MetaData</code><a class="headerlink" href="#pagesst_metadata" title="Permanent link">&para;</a></h4>
-<div class="codehilite"><pre><span></span><code><span class="n">LeafNode_Begin_Offset</span>
-<span class="n">LeafNode_End_offset</span>
-<span class="n">FileName</span>
+<div class="codehilite"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="nc">SSTMetadata</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">rootPageOffset</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">leafNodeBeginOffset</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">leafNodeEndOffset</span><span class="p">;</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">fileName</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// SST Bloom filter</span>
+<span class="w">        </span><span class="n">BloomFilter</span><span class="w"> </span><span class="n">bloomFilter</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">bool</span><span class="w"> </span><span class="n">hasBloomFilter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 </code></pre></div>
 
 <h4 id="pageleafnodes"><code>Page::LeafNodes</code><a class="headerlink" href="#pageleafnodes" title="Permanent link">&para;</a></h4>
@@ -561,7 +568,18 @@
 <span class="n">serialized</span><span class="w"> </span><span class="n">key</span><span class="o">-</span><span class="n">value</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="n">metadata</span><span class="w"> </span><span class="p">(</span><span class="n">serialized</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">protobuf</span><span class="p">)</span>
 <span class="n">serialized</span><span class="w"> </span><span class="n">key</span><span class="o">-</span><span class="n">value</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">metadata</span><span class="w"> </span><span class="p">(</span><span class="n">serialized</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">protobuf</span><span class="p">)</span>
 <span class="p">...</span>
+<span class="n">Bloom</span><span class="w"> </span><span class="n">Filter</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">Leaf</span><span class="w"> </span><span class="n">Page</span>
 <span class="c1">// with padding</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="nc">LeafNodeData</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">keyValues</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">nextLeafOffset</span><span class="p">;</span><span class="w"> </span><span class="c1">// Offset to next leaf node</span>
+
+<span class="w">        </span><span class="c1">// Bloom filter for the leaf node</span>
+<span class="w">        </span><span class="n">BloomFilter</span><span class="w"> </span><span class="n">bloomFilter</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">bool</span><span class="w"> </span><span class="n">hasBloomFilter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 </code></pre></div>
 
 <h4 id="pageinternalnodes"><code>Page::InternalNodes</code><a class="headerlink" href="#pageinternalnodes" title="Permanent link">&para;</a></h4>
@@ -574,6 +592,12 @@
 <span class="n">level</span><span class="err">#</span><span class="mi">1</span><span class="w"> </span><span class="n">key</span><span class="o">-</span><span class="n">value</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="n">metadata</span><span class="w"> </span><span class="p">(</span><span class="n">serialized</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">protobuf</span><span class="p">),</span><span class="w"> </span><span class="n">jump_offset_L2_K1</span><span class="p">,</span><span class="w"> </span><span class="n">jump_offset_L2_K2</span>
 <span class="p">...</span>
 <span class="c1">// with padding</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="nc">InternalNodeData</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">keys</span><span class="p">;</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">uint64_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">childOffsets</span><span class="p">;</span><span class="w"> </span><span class="c1">// Offsets to child pages, size = keys.size() + 1</span>
+<span class="w">    </span><span class="p">}</span>
 </code></pre></div>
 
 <h4 id="pagebloomfilter"><code>Page::BloomFilter</code><a class="headerlink" href="#pagebloomfilter" title="Permanent link">&para;</a></h4>

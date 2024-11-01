@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tba" class="md-skip">
+        <a href="#buffer-pool" class="md-skip">
           Skip to content
         </a>
       
@@ -335,9 +335,60 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tba" class="md-nav__link">
+  <a href="#buffer-pool" class="md-nav__link">
     <span class="md-ellipsis">
-      TBA
+      Buffer Pool
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bloom-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bloom Filter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-b-tree-as-sst-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Static B+ Tree as SST file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Static B+ Tree as SST file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#writing-into-sst-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Writing into sst file
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-sst-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reading sst file
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lsm-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      LSM-Tree
     </span>
   </a>
   
@@ -376,9 +427,60 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tba" class="md-nav__link">
+  <a href="#buffer-pool" class="md-nav__link">
     <span class="md-ellipsis">
-      TBA
+      Buffer Pool
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bloom-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bloom Filter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#static-b-tree-as-sst-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Static B+ Tree as SST file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Static B+ Tree as SST file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#writing-into-sst-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Writing into sst file
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-sst-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reading sst file
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lsm-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      LSM-Tree
     </span>
   </a>
   
@@ -404,7 +506,90 @@
 
   <h1>Database Design</h1>
 
-<h3 id="tba">TBA<a class="headerlink" href="#tba" title="Permanent link">&para;</a></h3>
+<h3 id="buffer-pool"><strong>Buffer Pool</strong><a class="headerlink" href="#buffer-pool" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// PageManager.h</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PageManager</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="w">    </span><span class="c1">// BufferPool configuration</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">setBufferPoolParameters</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">capacity</span><span class="p">,</span><span class="w"> </span><span class="n">EvictionPolicy</span><span class="w"> </span><span class="n">policy</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">getCacheHit</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="k">return</span><span class="w"> </span><span class="n">bufferPool</span><span class="o">-&gt;</span><span class="n">getCacheHit</span><span class="p">();};</span>
+
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="w">    </span><span class="c1">// shared buffer pool among all the pageManager</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">BufferPool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bufferPool</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// ...</span>
+<span class="p">};</span>
+</code></pre></div>
+
+<h3 id="bloom-filter"><strong>Bloom Filter</strong><a class="headerlink" href="#bloom-filter" title="Permanent link">&para;</a></h3>
+<p>TBD</p>
+<h3 id="static-b-tree-as-sst-file"><strong>Static B+ Tree as SST file</strong><a class="headerlink" href="#static-b-tree-as-sst-file" title="Permanent link">&para;</a></h3>
+<h4 id="writing-into-sst-file">Writing into sst file<a class="headerlink" href="#writing-into-sst-file" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="n">DiskBTree</span><span class="o">::</span><span class="n">DiskBTree</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sstFileName</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">keyValues</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">pageSize</span><span class="p">)</span>
+<span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">sstFileName</span><span class="p">(</span><span class="n">sstFileName</span><span class="p">),</span><span class="w"> </span><span class="n">pageManager</span><span class="p">(</span><span class="n">sstFileName</span><span class="p">,</span><span class="w"> </span><span class="n">pageSize</span><span class="p">),</span><span class="w"> </span><span class="n">pageSize</span><span class="p">(</span><span class="n">pageSize</span><span class="p">),</span><span class="w"> </span><span class="n">root</span><span class="p">(</span><span class="k">nullptr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Constructor for creating a new SST file</span>
+
+<span class="w">    </span><span class="c1">// Step 1: Write placeholder metadata to offset 0</span>
+<span class="w">    </span><span class="n">Page</span><span class="w"> </span><span class="nf">metadataPage</span><span class="p">(</span><span class="n">Page</span><span class="o">::</span><span class="n">PageType</span><span class="o">::</span><span class="n">SST_METADATA</span><span class="p">);</span>
+<span class="w">    </span><span class="n">pageManager</span><span class="p">.</span><span class="n">writePage</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">metadataPage</span><span class="p">);</span><span class="w"> </span><span class="c1">// Reserve offset 0</span>
+
+<span class="w">    </span><span class="c1">// Step 2: Split keyValues into leaf pages</span>
+<span class="w">    </span><span class="n">splitInputPairs</span><span class="p">(</span><span class="n">keyValues</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Step 3: Compute degree and height</span>
+<span class="w">    </span><span class="n">computeDegreeAndHeight</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Step 4: Build the tree</span>
+<span class="w">    </span><span class="n">buildTree</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Step 5: Write the tree into the SST file</span>
+<span class="w">    </span><span class="n">writeTreeToSST</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Step 6: Set the root offset</span>
+<span class="w">    </span><span class="n">rootOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">root</span><span class="o">-&gt;</span><span class="n">offset</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Step 7: Update and write the metadata page with the actual root offset</span>
+<span class="w">    </span><span class="n">metadataPage</span><span class="p">.</span><span class="n">setMetadata</span><span class="p">(</span><span class="n">rootOffset</span><span class="p">,</span><span class="w"> </span><span class="n">leafBeginOffset</span><span class="p">,</span><span class="w"> </span><span class="n">leafEndOffset</span><span class="p">,</span><span class="w"> </span><span class="n">sstFileName</span><span class="p">);</span>
+<span class="w">    </span><span class="n">pageManager</span><span class="p">.</span><span class="n">writePage</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">metadataPage</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// After writing, clear the in-memory structures to free memory</span>
+<span class="w">    </span><span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h4 id="reading-sst-file">Reading sst file<a class="headerlink" href="#reading-sst-file" title="Permanent link">&para;</a></h4>
+<div class="codehilite"><pre><span></span><code><span class="n">DiskBTree</span><span class="o">::</span><span class="n">DiskBTree</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sstFileName</span><span class="p">)</span>
+<span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">sstFileName</span><span class="p">(</span><span class="n">sstFileName</span><span class="p">),</span><span class="w"> </span><span class="n">pageManager</span><span class="p">(</span><span class="n">sstFileName</span><span class="p">),</span><span class="w"> </span><span class="n">root</span><span class="p">(</span><span class="k">nullptr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Constructor for reading an existing SST file</span>
+
+<span class="w">    </span><span class="c1">// Read the metadata page from offset 0</span>
+<span class="w">    </span><span class="n">Page</span><span class="w"> </span><span class="n">metadataPage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pageManager</span><span class="p">.</span><span class="n">readPage</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Extract metadata</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">fileName</span><span class="p">;</span>
+<span class="w">    </span><span class="n">metadataPage</span><span class="p">.</span><span class="n">getMetadata</span><span class="p">(</span><span class="n">rootOffset</span><span class="p">,</span><span class="w"> </span><span class="n">leafBeginOffset</span><span class="p">,</span><span class="w"> </span><span class="n">leafEndOffset</span><span class="p">,</span><span class="w"> </span><span class="n">fileName</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// sstFileName is already set; ensure it matches the metadata (optional)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sstFileName</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">fileName</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Warning: SST file name does not match metadata file name.&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Since the tree is static, we don&#39;t load any nodes into memory</span>
+<span class="w">    </span><span class="c1">// We rely on reading pages from disk during search and scan operations</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="lsm-tree"><strong>LSM-Tree</strong><a class="headerlink" href="#lsm-tree" title="Permanent link">&para;</a></h3>
+<p>TBD</p>
 
 
 
