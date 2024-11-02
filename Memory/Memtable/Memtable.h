@@ -39,9 +39,6 @@ public:
     // Flush the memtable to disk (SST file)
     void flushToDisk();
 
-    // set sstFileManager degree
-    void setSstFileManager_BTree_Degree(int degree) {sstFileManager->setDegree(degree);};
-
     // get current size
     int get_currentSize() const {return currentSize;};
 

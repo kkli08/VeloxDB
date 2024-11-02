@@ -28,8 +28,6 @@ public:
     // Scan keys within a range across all SST files
     void scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result);
 
-    // set degree
-    void setDegree(int _degree) {degree = _degree;};
     // set path
     void setPath(string _path) {dbDirectory = _path;};
 
@@ -41,8 +39,6 @@ private:
     // Directory where SST files are stored
     std::string dbDirectory;
 
-    // B+ tree degree
-    int degree;
 
     // List of SST files (DiskBTree instances)
     std::vector<std::shared_ptr<DiskBTree>> sstFiles;
