@@ -178,7 +178,9 @@ bool KeyValueWrapper::operator==(const KeyValueWrapper& other) const {
     return false;
 }
 
-
+bool KeyValueWrapper::operator!=(const KeyValueWrapper& other) const {
+    return !(*this == other);
+}
 
 
 
@@ -244,10 +246,27 @@ std::string KeyValueWrapper::keyValueTypeToString(KeyValue::KeyValueType type) c
 }
 
 size_t KeyValueWrapper::getSerializedSize() const {
-    // sizeof kv pair + sequence number + tombstone
+    // sizeof kv pair + sequence number (uint64_t) + tombstone (uint8_t)
     return sizeof(kv.key_case()) + sizeof(kv.value_case()) + sizeof(kv.key_type()) + sizeof(kv.value_type()) + sizeof(size_t) + sizeof(uint64_t);
 }
 
+// Sequence number
+void KeyValueWrapper::generateSequenceNumber() {
+    using namespace std::chrono;
+    sequenceNumber = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+}
 
+// Tombstone API
+void KeyValueWrapper::setTombstone(bool isTombstone) {
+    tombstone = isTombstone;
+}
+
+void KeyValueWrapper::markAsTombstone() {
+    tombstone = true;
+}
+
+bool KeyValueWrapper::isTombstone() const {
+    return tombstone;
+}
 
 

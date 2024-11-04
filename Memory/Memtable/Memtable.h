@@ -2,30 +2,23 @@
 // Created by Damian Li on 2024-08-26.
 //
 
-//
 // Memtable.h
-//
-
 #ifndef MEMTABLE_H
 #define MEMTABLE_H
 
 #include "RedBlackTree.h"
-#include "SstFileManager.h"
 #include <filesystem>
 #include <set>
+#include <vector>
 
 namespace fs = std::filesystem;
 
 class Memtable {
 public:
     // Constructors and Destructor
-    Memtable(std::shared_ptr<SSTFileManager> sstFileManager);
-    explicit Memtable(int threshold, std::shared_ptr<SSTFileManager> sstFileManager);
+    Memtable();
+    explicit Memtable(int threshold);
     ~Memtable();
-
-    // Set and get the database path
-    void setPath(const fs::path& dbPath);
-    fs::path getPath() const;
 
     // Insert a key-value pair into the memtable
     void put(const KeyValueWrapper& kv);
@@ -36,30 +29,29 @@ public:
     // Scan the memtable for keys within a range
     void scan(const KeyValueWrapper& smallKey, const KeyValueWrapper& largeKey, std::set<KeyValueWrapper>& res);
 
-    // Flush the memtable to disk (SST file)
-    void flushToDisk();
+    // Get current size
+    int getCurrentSize() const { return currentSize; }
 
-    // get current size
-    int get_currentSize() const {return currentSize;};
+    // Set and get the memtable threshold
+    void setThreshold(int threshold) { memtableSize = threshold; }
+    int getThreshold() const { return memtableSize; }
+
+    // Flush the memtable and return key-value pairs
+    std::vector<KeyValueWrapper> flush();
 
 private:
     // In-memory Red-Black Tree
     RedBlackTree* tree;
 
-    // Threshold for flushing memtable to disk
+    // Threshold for flushing memtable
     int memtableSize;
 
     // Current number of entries in the memtable
     int currentSize;
-
-    // Database path
-    fs::path dbPath;
-
-    // SSTFileManager for flushing to disk
-    std::shared_ptr<SSTFileManager> sstFileManager;
 };
 
 #endif // MEMTABLE_H
+
 
 
 

@@ -19,6 +19,9 @@ public:
     // Constructor for opening an existing SST file
     DiskBTree(const std::string& sstFileName);
 
+    // New constructor for building a B+ tree from existing leaf pages
+    DiskBTree(const std::string& sstFileName, const std::string& leafsFileName, const std::vector<KeyValueWrapper>& leafPageSmallestKeys);
+
     // Destructor
     ~DiskBTree();
 
@@ -37,10 +40,17 @@ public:
     // Scan keys within a range
     void scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result);
 
-private:
     // PageManager for disk I/O
     PageManager pageManager;
 
+    // Leaf node begin and end offsets
+    uint64_t getLeafBeginOffset() const { return leafBeginOffset; };
+    uint64_t getLeafEndOffset() const { return leafEndOffset; };
+
+    // Method to get the number of key-value pairs
+    size_t getNumberOfKeyValues() const { return totalKeyValueCount; }
+
+private:
     // Offset of the root node
     uint64_t rootOffset;
 
@@ -48,6 +58,7 @@ private:
     uint64_t leafBeginOffset;
     uint64_t leafEndOffset;
 
+    size_t totalKeyValueCount;
     // File name of the SST file
     std::string sstFileName;
 
@@ -71,7 +82,7 @@ private:
         BTreeNode(bool leaf) : isLeaf(leaf), offset(0) {}
     };
 
-    // Vector of leaf pages
+    // Vector of leaf pages (used in the original constructor)
     std::vector<Page> leafPages;
 
     // Vector of smallest keys from each leaf page
@@ -92,11 +103,20 @@ private:
     // Method to compute degree and height
     void computeDegreeAndHeight();
 
+    // New method to compute degree and height from leaf keys
+    void computeDegreeAndHeightFromLeafKeys(const std::vector<KeyValueWrapper>& leafPageSmallestKeys);
+
     // Method to build the tree
     void buildTree();
 
+    // New method to build the tree from leaf page keys and offsets
+    void buildTreeFromLeafPageKeys(const std::vector<KeyValueWrapper>& leafPageSmallestKeys, const std::vector<uint64_t>& leafPageOffsets);
+
     // Method to write the tree into the SST file
     void writeTreeToSST();
+
+    // New method to write the tree into the SST file using leaf page offsets
+    void writeTreeToSSTWithLeafOffsets(const std::vector<uint64_t>& leafPageOffsets);
 };
 
 #endif // DISK_BTREE_H

@@ -150,6 +150,7 @@ add_executable(runTests
         tests/VeloxDB_api_unittest.cpp
         tests/veloxdb_GET_benchmark.cpp
         tests/bloom_filter_unittests.cpp
+        tests/lsm_tree_unittests.cpp
 )
 
 # Include directories for runTests

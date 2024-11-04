@@ -30,6 +30,9 @@ public:
     // Read a page from disk at the given offset
     Page readPage(uint64_t offset);
 
+    // Write raw bytes to disk at the given offset
+    void writeRawPage(uint64_t offset, const char* buffer, size_t size);
+
     // Get the current end of file offset
     uint64_t getEOFOffset() const;
 

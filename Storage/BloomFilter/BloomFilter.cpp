@@ -41,12 +41,15 @@ void BloomFilter::add(const KeyValueWrapper& kv) {
 
 bool BloomFilter::possiblyContains(const KeyValueWrapper& kv) const {
     auto hashIndices = hash(kv);
+    int i = 2;
     for (size_t index : hashIndices) {
         index %= numBits;
         if (!(bitArray[index / 8] & (1 << (index % 8)))) {
+            // cout << "return false" << endl;
             return false;
         }
     }
+
     return true;
 }
 

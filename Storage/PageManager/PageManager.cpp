@@ -94,6 +94,36 @@ Page PageManager::readPage(uint64_t offset) {
     }
 }
 
+void PageManager::writeRawPage(uint64_t offset, const char* buffer, size_t size) {
+    // Ensure the file is open
+    if (!file.is_open()) {
+        throw std::runtime_error("File is not open: " + fileName);
+    }
+
+    // Seek to the specified offset
+    file.seekp(offset, std::ios::beg);
+    if (!file) {
+        throw std::runtime_error("Failed to seek to offset " + std::to_string(offset) + " in file " + fileName);
+    }
+
+    // Write the raw bytes
+    file.write(buffer, size);
+    if (!file) {
+        throw std::runtime_error("Failed to write raw data to offset " + std::to_string(offset) + " in file " + fileName);
+    }
+
+    // Flush to ensure data is written to disk
+    file.flush();
+    if (!file) {
+        throw std::runtime_error("Failed to flush data to disk after writing to offset " + std::to_string(offset));
+    }
+
+    // Optionally, update nextPageOffset if writing at the end
+    if (offset >= nextPageOffset) {
+        nextPageOffset = offset + pageSize;
+    }
+}
+
 // Get the current end of file offset
 uint64_t PageManager::getEOFOffset() const {
     return nextPageOffset;

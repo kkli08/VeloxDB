@@ -269,107 +269,122 @@ void Page::deserializeInternalNode(const std::vector<char>& buffer) {
 
 // Serialization for Leaf Node
 void Page::serializeLeafNode(std::vector<char>& buffer) const {
-    // Serialize number of entries
-    uint16_t numPairs = static_cast<uint16_t>(leafNodeData.keyValues.size());
-    buffer.insert(buffer.end(), reinterpret_cast<const char*>(&numPairs), reinterpret_cast<const char*>(&numPairs) + sizeof(numPairs));
+   // Serialize number of entries
+   uint16_t numPairs = static_cast<uint16_t>(leafNodeData.keyValues.size());
+   buffer.insert(buffer.end(), reinterpret_cast<const char*>(&numPairs), reinterpret_cast<const char*>(&numPairs) + sizeof(numPairs));
 
-    // Serialize key-value pairs
-    for (const auto& kv : leafNodeData.keyValues) {
-        std::string kvData;
-        kv.kv.SerializeToString(&kvData);
-        uint32_t kvSize = static_cast<uint32_t>(kvData.size());
-        buffer.insert(buffer.end(), reinterpret_cast<const char*>(&kvSize), reinterpret_cast<const char*>(&kvSize) + sizeof(kvSize));
-        buffer.insert(buffer.end(), kvData.begin(), kvData.end());
-    }
+   // Serialize key-value pairs
+   for (const auto& kv : leafNodeData.keyValues) {
+       // Serialize sequenceNumber
+       uint64_t seqNum = kv.sequenceNumber;
+       buffer.insert(buffer.end(), reinterpret_cast<const char*>(&seqNum), reinterpret_cast<const char*>(&seqNum) + sizeof(seqNum));
 
-    // Serialize next leaf offset
-    buffer.insert(buffer.end(), reinterpret_cast<const char*>(&leafNodeData.nextLeafOffset),
-                  reinterpret_cast<const char*>(&leafNodeData.nextLeafOffset) + sizeof(leafNodeData.nextLeafOffset));
+       // Serialize tombstone
+       uint8_t tombstoneFlag = kv.tombstone ? 1 : 0;
+       buffer.push_back(tombstoneFlag);
 
-    // Serialize hasBloomFilter flag
-    uint8_t hasBF = leafNodeData.hasBloomFilter ? 1 : 0;
-    buffer.push_back(hasBF);
+       // Serialize KeyValue
+       std::string kvData;
+       kv.kv.SerializeToString(&kvData);
+       uint32_t kvSize = static_cast<uint32_t>(kvData.size());
+       buffer.insert(buffer.end(), reinterpret_cast<const char*>(&kvSize), reinterpret_cast<const char*>(&kvSize) + sizeof(kvSize));
+       buffer.insert(buffer.end(), kvData.begin(), kvData.end());
+   }
 
-    if (leafNodeData.hasBloomFilter) {
-        // Before serializing the Bloom filter
-        size_t bloomFilterSize = leafNodeData.bloomFilter.getSerializedSize();
-        // debug information
-        // std::cout << "Leaf Bloom filter size: " << bloomFilterSize << " bytes\n";
+   // Serialize next leaf offset
+   buffer.insert(buffer.end(), reinterpret_cast<const char*>(&leafNodeData.nextLeafOffset),
+                 reinterpret_cast<const char*>(&leafNodeData.nextLeafOffset) + sizeof(leafNodeData.nextLeafOffset));
 
-        // Serialize Bloom filter
-        std::vector<char> bloomFilterData = leafNodeData.bloomFilter.serialize();
-        uint32_t bloomFilterSize32 = static_cast<uint32_t>(bloomFilterData.size());
+   // Serialize hasBloomFilter flag
+   uint8_t hasBF = leafNodeData.hasBloomFilter ? 1 : 0;
+   buffer.push_back(hasBF);
 
-        // Serialize bloomFilterSize
-        buffer.insert(buffer.end(), reinterpret_cast<const char*>(&bloomFilterSize32),
-                      reinterpret_cast<const char*>(&bloomFilterSize32) + sizeof(bloomFilterSize32));
+   if (leafNodeData.hasBloomFilter) {
+       // Serialize Bloom filter
+       std::vector<char> bloomFilterData = leafNodeData.bloomFilter.serialize();
+       uint32_t bloomFilterSize32 = static_cast<uint32_t>(bloomFilterData.size());
 
-        // Serialize Bloom filter data
-        buffer.insert(buffer.end(), bloomFilterData.begin(), bloomFilterData.end());
-    }
+       // Serialize bloomFilterSize
+       buffer.insert(buffer.end(), reinterpret_cast<const char*>(&bloomFilterSize32),
+                     reinterpret_cast<const char*>(&bloomFilterSize32) + sizeof(bloomFilterSize32));
+
+       // Serialize Bloom filter data
+       buffer.insert(buffer.end(), bloomFilterData.begin(), bloomFilterData.end());
+   }
 }
 
 // Deserialization for Leaf Node
 void Page::deserializeLeafNode(const std::vector<char>& buffer) {
-    size_t offset = 1; // Start after page type
+   size_t offset = 1; // Start after page type
 
-    // Deserialize number of entries
-    uint16_t numPairs;
-    std::memcpy(&numPairs, &buffer[offset], sizeof(numPairs));
-    offset += sizeof(numPairs);
-    numEntries = numPairs;
+   // Deserialize number of entries
+   uint16_t numPairs;
+   std::memcpy(&numPairs, &buffer[offset], sizeof(numPairs));
+   offset += sizeof(numPairs);
+   numEntries = numPairs;
 
-    // Deserialize key-value pairs
-    for (uint16_t i = 0; i < numPairs; ++i) {
-        uint32_t kvSize;
-        std::memcpy(&kvSize, &buffer[offset], sizeof(kvSize));
-        offset += sizeof(kvSize);
+   // Deserialize key-value pairs
+   for (uint16_t i = 0; i < numPairs; ++i) {
+       // Deserialize sequenceNumber
+       uint64_t seqNum;
+       std::memcpy(&seqNum, &buffer[offset], sizeof(seqNum));
+       offset += sizeof(seqNum);
 
-        std::string kvData(buffer.begin() + offset, buffer.begin() + offset + kvSize);
-        offset += kvSize;
+       // Deserialize tombstone
+       uint8_t tombstoneFlag = buffer[offset];
+       offset += sizeof(uint8_t);
 
-        KeyValueWrapper kv;
-        if (!kv.kv.ParseFromString(kvData)) {
-            throw std::runtime_error("Failed to parse KeyValueWrapper in leaf node");
-        }
-        leafNodeData.keyValues.push_back(kv);
-    }
+       // Deserialize KeyValue
+       uint32_t kvSize;
+       std::memcpy(&kvSize, &buffer[offset], sizeof(kvSize));
+       offset += sizeof(kvSize);
 
-    // Deserialize next leaf offset
-    std::memcpy(&leafNodeData.nextLeafOffset, &buffer[offset], sizeof(leafNodeData.nextLeafOffset));
-    offset += sizeof(leafNodeData.nextLeafOffset);
+       std::string kvData(buffer.begin() + offset, buffer.begin() + offset + kvSize);
+       offset += kvSize;
 
-    // Deserialize hasBloomFilter flag
-    if (offset >= buffer.size()) {
-        leafNodeData.hasBloomFilter = false;
-        return;
-    }
+       KeyValueWrapper kv;
+       if (!kv.kv.ParseFromString(kvData)) {
+           throw std::runtime_error("Failed to parse KeyValueWrapper in leaf node");
+       }
 
-    uint8_t hasBF = buffer[offset];
-    offset += sizeof(uint8_t);
+       kv.sequenceNumber = seqNum;
+       kv.tombstone = (tombstoneFlag == 1);
 
-    if (hasBF) {
-        leafNodeData.hasBloomFilter = true;
+       leafNodeData.keyValues.push_back(kv);
+   }
 
-        // Deserialize bloomFilterSize
-        uint32_t bloomFilterSize;
-        std::memcpy(&bloomFilterSize, &buffer[offset], sizeof(bloomFilterSize));
-        offset += sizeof(bloomFilterSize);
+   // Deserialize next leaf offset
+   std::memcpy(&leafNodeData.nextLeafOffset, &buffer[offset], sizeof(leafNodeData.nextLeafOffset));
+   offset += sizeof(leafNodeData.nextLeafOffset);
 
-        // Deserialize Bloom filter data
-        if (offset + bloomFilterSize > buffer.size()) {
-            throw std::runtime_error("Buffer too small to read Bloom filter data in leaf node");
-        }
+   // Deserialize hasBloomFilter flag
+   if (offset >= buffer.size()) {
+       leafNodeData.hasBloomFilter = false;
+       return;
+   }
 
-        std::vector<char> bloomFilterData(buffer.begin() + offset, buffer.begin() + offset + bloomFilterSize);
-        offset += bloomFilterSize;
+   uint8_t hasBF = buffer[offset];
+   offset += sizeof(uint8_t);
 
-        // Deserialize the Bloom filter
-        leafNodeData.bloomFilter.deserialize(bloomFilterData);
-    } else {
-        leafNodeData.hasBloomFilter = false;
-    }
+   if (hasBF) {
+       leafNodeData.hasBloomFilter = true;
+
+       // Deserialize bloomFilterSize
+       uint32_t bloomFilterSize;
+       std::memcpy(&bloomFilterSize, &buffer[offset], sizeof(bloomFilterSize));
+       offset += sizeof(bloomFilterSize);
+
+       // Deserialize Bloom filter data
+       std::vector<char> bloomFilterData(buffer.begin() + offset, buffer.begin() + offset + bloomFilterSize);
+       offset += bloomFilterSize;
+
+       // Deserialize the Bloom filter
+       leafNodeData.bloomFilter.deserialize(bloomFilterData);
+   } else {
+       leafNodeData.hasBloomFilter = false;
+   }
 }
+
 
 // Serialization for SST Metadata
 void Page::serializeSSTMetadata(std::vector<char>& buffer) const {
@@ -491,6 +506,7 @@ bool Page::leafBloomFilterContains(const KeyValueWrapper& kv) const {
         // If no Bloom filter, assume it might contain the key
         return true;
     }
+    // std::cout << "Page::leafBloomFilterContains() called" << std::endl;
     return leafNodeData.bloomFilter.possiblyContains(kv);
 }
 

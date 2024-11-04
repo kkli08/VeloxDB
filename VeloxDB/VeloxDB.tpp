@@ -1,14 +1,16 @@
+// VeloxDB.tpp
+
 /*
-* template function to put key-value pair
- * K = key type, V = value type
- */
+* Template function to put key-value pair
+* K = key type, V = value type
+*/
 template<typename K, typename V>
 void VeloxDB::Put(K key, V value) {
     check_if_open();
 
-    // Create a KeyValueWrapper instance and insert it into the memtable
+    // Create a KeyValueWrapper instance and insert it into the lsmTree
     KeyValueWrapper kvWrapper(key, value);
-    memtable->put(kvWrapper);
+    lsmTree->put(kvWrapper);
 }
 
 // Overloaded Get method to simplify retrieval by passing a key directly
@@ -22,7 +24,8 @@ KeyValueWrapper VeloxDB::Get(K key) {
 
 // Overloaded Scan method to simplify scanning by passing two keys directly
 template<typename K1, typename K2>
-set<KeyValueWrapper> VeloxDB::Scan(K1 small_key, K2 large_key) {
+std::set<KeyValueWrapper> VeloxDB::Scan(K1 small_key, K2 large_key) {
+    check_if_open();
     // Convert the keys to KeyValueWrapper and call the existing Scan method
     KeyValueWrapper kvSmallKey(small_key, "");
     KeyValueWrapper kvLargeKey(large_key, "");

@@ -2,6 +2,8 @@ template<typename K, typename V>
 KeyValueWrapper::KeyValueWrapper(K key, V value) {
     setKey(key);    // Set the key
     setValue(value); // Set the value
+    generateSequenceNumber(); // Generate sequence number
+    tombstone = false; // Default to not tombstone
 }
 
 template<typename T>
