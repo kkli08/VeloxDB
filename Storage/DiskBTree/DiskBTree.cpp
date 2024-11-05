@@ -12,6 +12,7 @@ DiskBTree::DiskBTree(const std::string& sstFileName, const std::vector<KeyValueW
     : sstFileName(sstFileName), pageManager(sstFileName, pageSize), pageSize(pageSize), root(nullptr)
 {
     // Constructor for creating a new SST file
+    totalKeyValueCount = keyValues.size();
 
     // Step 1: Write placeholder metadata to offset 0
     Page metadataPage(Page::PageType::SST_METADATA);
