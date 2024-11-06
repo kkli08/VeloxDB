@@ -71,10 +71,11 @@ DiskBTree::DiskBTree(const std::string& sstFileName)
 }
 
 DiskBTree::DiskBTree(const std::string& sstFileName, const std::string& leafsFileName, const std::vector<KeyValueWrapper>& leafPageSmallestKeys, int numOfPages, int totalKvs)
-    : sstFileName(sstFileName), root(nullptr)
+    : sstFileName(sstFileName), root(nullptr), leafPageSmallestKeys(leafPageSmallestKeys)
 {
     // Constructor for creating a new SST file from existing leaf pages
     totalKeyValueCount = totalKvs;
+    int actual_KV_read = 0;
     pageManager = std::make_shared<PageManager>(sstFileName);
     // cout << "DiskBTree::DiskBTree() Leaf file name: " << leafsFileName << endl;
     // Step 1: Write placeholder metadata to offset 0
@@ -88,14 +89,29 @@ DiskBTree::DiskBTree(const std::string& sstFileName, const std::string& leafsFil
 
     PageManager leafPageManager(leafsFileName);
     // cout << "DiskBTree::DiskBTree(): Number of Pages to read: " << numOfPages << std::endl;
-    for(int i = 0; i < numOfPages; i++) {
+
+
+    for(int i = 0; i < leafPageSmallestKeys.size(); i++) {
         // cout << "DiskBTree::DiskBTree() read page offset: " << currentOffset << endl;
+        uint64_t offset = currentOffset;
         Page leafPage = leafPageManager.readPage(currentOffset);
+        actual_KV_read += leafPage.getLeafEntries().size();
+
+        // Set the nextLeafOffset of the previous leaf page
+
+        if (i > 0) {
+            Page PreviousPage = pageManager->readPage(offset-pageSize);
+            PreviousPage.setNextLeafOffset(offset);
+            // Re-write the previous leaf page to update the nextLeafOffset
+            pageManager->writePage(leafPageOffsets[i-1], PreviousPage);
+        }
+
         // leafPage.printType();
         pageManager->writePage(currentOffset, leafPage);
         leafPageOffsets.push_back(currentOffset);
         currentOffset += pageSize;
     }
+    // cout << "DiskBTree::DiskBTree(): actual_KV_read == " << actual_KV_read << endl;
 
 
     // Set leafBeginOffset and leafEndOffset
@@ -373,9 +389,11 @@ void DiskBTree::computeDegreeAndHeightFromLeafKeys(const std::vector<KeyValueWra
     size_t keySize = 0;
     if (!leafPageSmallestKeys.empty()) {
         // Serialize the first key to get its size
-        std::string keyData;
-        leafPageSmallestKeys[0].kv.SerializeToString(&keyData);
-        keySize = keyData.size();
+        // std::string keyData;
+        // leafPageSmallestKeys[0].kv.SerializeToString(&keyData);
+        // keySize = keyData.size();
+        keySize = leafPageSmallestKeys[0].getSerializedSize();
+
     } else {
         keySize = sizeof(KeyValueWrapper); // Fallback estimate
     }
@@ -657,4 +675,36 @@ void DiskBTree::writeTreeToSSTWithLeafOffsets(const std::vector<uint64_t>& leafP
 
     // The root node should already have its offset set
     // No further action needed
+}
+
+void DiskBTree::printKVs() const {
+    uint64_t currentOffset = getLeafBeginOffset();
+    bool done = false;
+
+    while (!done) {
+        // Read the leaf page from disk
+        Page currentPage = pageManager->readPage(currentOffset);
+
+        // Process current leaf page
+        const std::vector<KeyValueWrapper>& kvPairs = currentPage.getLeafEntries();
+
+        // Iterate over the kvPairs
+        for (const auto& kv : kvPairs) {
+            // for testing purpose, we only print int value
+            cout << "Key = " << kv.kv.int_key() << " Value = " << kv.kv.int_value() << endl;
+        }
+
+        if (done) {
+            break;
+        }
+
+        // Move to the next leaf page
+        uint64_t nextLeafOffset = currentPage.getNextLeafOffset();
+        if (nextLeafOffset == 0) {
+            // No more leaf pages
+            break;
+        }
+
+        currentOffset = nextLeafOffset;
+    }
 }

@@ -410,11 +410,13 @@ void LSMTree::mergeLevels(int levelIndex, const std::shared_ptr<DiskBTree>& sstT
     mergeSSTables(existingSSTable, sstToMerge, mergedLeafsPath.string(), leafPageSmallestKeys, numOfPages, totalKvs);
 
     // Create a new DiskBTree instance for the merged SSTable using the provided constructor
-    // cout << "LSMTree::mergeLevels() newSSTablePath.string() is " << newSSTablePath.string() << endl;
+    cout << "LSMTree::mergeLevels() newSSTablePath.string() is " << newSSTablePath.string() << endl;
     std::shared_ptr<DiskBTree> mergedSSTable = std::make_shared<DiskBTree>(
         newSSTablePath.string(), mergedLeafsPath.string(), leafPageSmallestKeys, numOfPages, totalKvs);
 
+
     // cout << "=========================" << endl;
+    // mergedSSTable->printKVs();
 
     // Delete old SSTable files and merged leaf pages file
     fs::remove(existingSSTable->getFileName());
@@ -459,8 +461,8 @@ void LSMTree::mergeSSTables(const std::shared_ptr<DiskBTree>& sst1,
     PageManager& pm1 = *(sst1->pageManager);
     PageManager& pm2 = *(sst2->pageManager);
 
-    // cout << "num of kv in sst1: " << sst1->getNumberOfKeyValues() << endl;
-    // cout << "num of kv in sst2: " << sst2->getNumberOfKeyValues() << endl;
+    cout << "num of kv in sst1: " << sst1->getNumberOfKeyValues() << endl;
+    cout << "num of kv in sst2: " << sst2->getNumberOfKeyValues() << endl;
 
 
     // Get leaf page offsets
@@ -623,6 +625,8 @@ void LSMTree::mergeSSTables(const std::shared_ptr<DiskBTree>& sst1,
 
     // Close the output PageManager
     outputLeafPageManager.close();
+
+    // cout << "LSMTree::MergeSSTables(): Number of KVs after merge: " << totalKvs << endl;
 }
 
 // Generate unique SSTable file names
@@ -638,35 +642,13 @@ void LSMTree::printTree() const {
         if (levels[i] == nullptr) {
             cout << "    No SST file in current level" << endl;
         }else {
-            uint64_t currentOffset = levels[i]->getLeafBeginOffset();
-            bool done = false;
-
-            while (!done) {
-                // Read the leaf page from disk
-                Page currentPage = levels[i]->pageManager->readPage(currentOffset);
-
-                // Process current leaf page
-                const std::vector<KeyValueWrapper>& kvPairs = currentPage.getLeafEntries();
-
-                // Iterate over the kvPairs
-                for (const auto& kv : kvPairs) {
-                    // for testing purpose, we only print int value
-                    cout << "Key = " << kv.kv.int_key() << " Value = " << kv.kv.int_value() << endl;
-                }
-
-                if (done) {
-                    break;
-                }
-
-                // Move to the next leaf page
-                uint64_t nextLeafOffset = currentPage.getNextLeafOffset();
-                if (nextLeafOffset == 0) {
-                    // No more leaf pages
-                    break;
-                }
-
-                currentOffset = nextLeafOffset;
-            }
+            levels[i]->printKVs();
         }
+    }
+}
+
+void LSMTree::printLevelSizes() const {
+    for (int i = 0; i < levelMaxSizes.size(); i++) {
+        cout << "Level " << i+1 << " maximum size = " << levelMaxSizes[i] << endl;
     }
 }

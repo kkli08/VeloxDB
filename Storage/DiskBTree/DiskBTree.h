@@ -59,6 +59,9 @@ public:
 
     std::string getSstFilename() const { return sstFileName; };
 
+    // print all key value pair from disk
+    void printKVs() const;
+
 private:
     // Offset of the root node
     uint64_t rootOffset;
@@ -126,6 +129,8 @@ private:
 
     // New method to write the tree into the SST file using leaf page offsets
     void writeTreeToSSTWithLeafOffsets(const std::vector<uint64_t>& leafPageOffsets);
+
+
 };
 
 #endif // DISK_BTREE_H

@@ -46,6 +46,7 @@ public:
 
     // print LSM-Tree structure
     void printTree() const;
+    void printLevelSizes() const;
 private:
     // Level 0 is always the in-memory memtable
     std::unique_ptr<Memtable> memtable; // Level 0

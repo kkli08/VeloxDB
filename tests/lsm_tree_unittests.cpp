@@ -275,7 +275,7 @@ TEST(LSMTreeTest, ScanAcrossLevels_II) {
     std::string dbPath = "test_lsm_scan_across";
     cleanUpDir(dbPath);
 
-    size_t memtableSize = 501; // Small size to trigger flushes
+    size_t memtableSize = 500; // Small size to trigger flushes
     LSMTree lsmTree(memtableSize, dbPath);
 
     // Insert 15 keys to populate Level1 and some in memtable
@@ -289,16 +289,17 @@ TEST(LSMTreeTest, ScanAcrossLevels_II) {
     KeyValueWrapper endKey(500, 0);
 
     // print all key
-    lsmTree.printTree();
-    // // Perform scan
-    // std::vector<KeyValueWrapper> scanResult;
-    // lsmTree.scan(startKey, endKey, scanResult);
-    //
+    // lsmTree.printTree();
+    // lsmTree.printLevelSizes();
+    // Perform scan
+    std::vector<KeyValueWrapper> scanResult;
+    lsmTree.scan(startKey, endKey, scanResult);
+
     // for (int i = 0; i < scanResult.size(); ++i) {
     //     cout << "Keys scanned: " << scanResult[i].kv.int_key() << endl;
     // }
-    // // Expected keys: 100 to 500 inclusive
-    // EXPECT_EQ(scanResult.size(), 401);
+    // Expected keys: 100 to 500 inclusive
+    EXPECT_EQ(scanResult.size(), 401);
 
 
     // Clean up
