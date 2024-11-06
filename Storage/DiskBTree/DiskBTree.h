@@ -20,7 +20,7 @@ public:
     DiskBTree(const std::string& sstFileName);
 
     // New constructor for building a B+ tree from existing leaf pages
-    DiskBTree(const std::string& sstFileName, const std::string& leafsFileName, const std::vector<KeyValueWrapper>& leafPageSmallestKeys);
+    DiskBTree(const std::string& sstFileName, const std::string& leafsFileName, const std::vector<KeyValueWrapper>& leafPageSmallestKeys, int numOfPages, int totalKvs);
 
     // Destructor
     ~DiskBTree();
@@ -41,7 +41,7 @@ public:
     void scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result);
 
     // PageManager for disk I/O
-    PageManager pageManager;
+    std::shared_ptr<PageManager> pageManager;
 
     // Leaf node begin and end offsets
     uint64_t getLeafBeginOffset() const { return leafBeginOffset; };
@@ -49,6 +49,15 @@ public:
 
     // Method to get the number of key-value pairs
     size_t getNumberOfKeyValues() const { return totalKeyValueCount; }
+
+    // update file name when merge to a new level
+    void updateSstFileName(const std::string &newLevelFilename) {
+        sstFileName = newLevelFilename;
+        pageManager->close();
+        pageManager = std::make_shared<PageManager>(sstFileName);
+    };
+
+    std::string getSstFilename() const { return sstFileName; };
 
 private:
     // Offset of the root node
@@ -63,7 +72,7 @@ private:
     std::string sstFileName;
 
     // Page size
-    size_t pageSize;
+    size_t pageSize = 4096;
 
     // Degree and height of the B+ tree
     size_t degree;

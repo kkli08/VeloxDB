@@ -60,6 +60,22 @@ public:
     // Estimate the base size of the page for serialization
     size_t getBaseSize() const;
 
+    void printType() {
+        switch (pageType) {
+            case PageType::INTERNAL_NODE:
+                std::cout << "INTERNAL_NODE" << std::endl;
+                break;
+            case PageType::LEAF_NODE:
+                std::cout << "LEAF_NODE" << std::endl;
+                break;
+            case PageType::SST_METADATA:
+                std::cout << "SST_METADATA" << std::endl;
+                break;
+            default:
+                std::cerr << "UNKNOWN PAGE TYPE" << std::endl;
+        }
+    };
+
 private:
     const size_t DEFAULT_PAGE_SIZE = 4096;
     // Common attributes

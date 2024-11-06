@@ -9,14 +9,14 @@
 #include <stdexcept>
 
 DiskBTree::DiskBTree(const std::string& sstFileName, const std::vector<KeyValueWrapper>& keyValues, size_t pageSize)
-    : sstFileName(sstFileName), pageManager(sstFileName, pageSize), pageSize(pageSize), root(nullptr)
+    : sstFileName(sstFileName), pageSize(pageSize), root(nullptr)
 {
     // Constructor for creating a new SST file
     totalKeyValueCount = keyValues.size();
-
+    pageManager = std::make_shared<PageManager>(sstFileName, pageSize);
     // Step 1: Write placeholder metadata to offset 0
     Page metadataPage(Page::PageType::SST_METADATA);
-    pageManager.writePage(0, metadataPage); // Reserve offset 0
+    pageManager->writePage(0, metadataPage); // Reserve offset 0
 
     // Step 2: Split keyValues into leaf pages
     splitInputPairs(keyValues);
@@ -35,7 +35,7 @@ DiskBTree::DiskBTree(const std::string& sstFileName, const std::vector<KeyValueW
 
     // Step 7: Update and write the metadata page with the actual root offset
     metadataPage.setMetadata(rootOffset, leafBeginOffset, leafEndOffset, sstFileName);
-    pageManager.writePage(0, metadataPage);
+    pageManager->writePage(0, metadataPage);
 
     // After writing, clear the in-memory structures to free memory
     for (auto node : allNodes) {
@@ -49,12 +49,12 @@ DiskBTree::DiskBTree(const std::string& sstFileName, const std::vector<KeyValueW
 }
 
 DiskBTree::DiskBTree(const std::string& sstFileName)
-    : sstFileName(sstFileName), pageManager(sstFileName), root(nullptr)
+    : sstFileName(sstFileName), root(nullptr)
 {
     // Constructor for reading an existing SST file
-
+    pageManager = std::make_shared<PageManager>(sstFileName);
     // Read the metadata page from offset 0
-    Page metadataPage = pageManager.readPage(0);
+    Page metadataPage = pageManager->readPage(0);
 
     // Extract metadata
     std::string fileName;
@@ -69,56 +69,36 @@ DiskBTree::DiskBTree(const std::string& sstFileName)
     // We rely on reading pages from disk during search and scan operations
 }
 
-DiskBTree::DiskBTree(const std::string& sstFileName, const std::string& leafsFileName, const std::vector<KeyValueWrapper>& leafPageSmallestKeys)
-    : sstFileName(sstFileName), pageManager(sstFileName), root(nullptr)
+DiskBTree::DiskBTree(const std::string& sstFileName, const std::string& leafsFileName, const std::vector<KeyValueWrapper>& leafPageSmallestKeys, int numOfPages, int totalKvs)
+    : sstFileName(sstFileName), root(nullptr)
 {
     // Constructor for creating a new SST file from existing leaf pages
-
+    totalKeyValueCount = totalKvs;
+    pageManager = std::make_shared<PageManager>(sstFileName);
+    // cout << "DiskBTree::DiskBTree() Leaf file name: " << leafsFileName << endl;
     // Step 1: Write placeholder metadata to offset 0
     Page metadataPage(Page::PageType::SST_METADATA);
-    pageManager.writePage(0, metadataPage); // Reserve offset 0
+    pageManager->writePage(0, metadataPage); // Reserve offset 0
 
     // Step 2: Copy the leaf pages from the .leafs file into the SST file
-    // Open the .leafs file
-    std::ifstream leafsFile(leafsFileName, std::ios::binary);
-    if (!leafsFile.is_open()) {
-        throw std::runtime_error("Failed to open leafs file: " + leafsFileName);
-    }
-
     // Initialize variables
     uint64_t currentOffset = pageSize; // Start after metadata page
     std::vector<uint64_t> leafPageOffsets; // Offsets of leaf pages in the SST file
 
-    // Read the leaf pages from the .leafs file and write them into the SST file
-    char* buffer = new char[pageSize];
-    while (leafsFile.read(buffer, pageSize)) {
-        // Write the leaf page to the SST file at currentOffset
-        pageManager.writeRawPage(currentOffset, buffer, pageSize);
-
-        // Record the offset
-        leafPageOffsets.push_back(currentOffset);
-
-        // Update currentOffset
-        currentOffset += pageSize;
-    }
-
-    // Handle the last leaf page if it's not a full page
-    std::streamsize bytesRead = leafsFile.gcount();
-    if (bytesRead > 0) {
-        // Pad the buffer to pageSize
-        std::memset(buffer + bytesRead, 0, pageSize - bytesRead);
-        // Write the leaf page to the SST file
-        pageManager.writeRawPage(currentOffset, buffer, pageSize);
-        // Record the offset
+    PageManager leafPageManager(leafsFileName);
+    for(int i = 0; i < numOfPages; i++) {
+        // cout << "DiskBTree::DiskBTree() read page offset: " << currentOffset << endl;
+        Page leafPage = leafPageManager.readPage(currentOffset);
+        // leafPage.printType();
+        pageManager->writePage(currentOffset, leafPage);
         leafPageOffsets.push_back(currentOffset);
         currentOffset += pageSize;
     }
 
-    delete[] buffer;
-    leafsFile.close();
 
     // Set leafBeginOffset and leafEndOffset
     if (!leafPageOffsets.empty()) {
+        // cout << "DiskBTree::DiskBTree() Leaf Page offsets not empty" << endl;
         leafBeginOffset = leafPageOffsets.front();
         leafEndOffset = leafPageOffsets.back();
     } else {
@@ -130,6 +110,8 @@ DiskBTree::DiskBTree(const std::string& sstFileName, const std::string& leafsFil
     computeDegreeAndHeightFromLeafKeys(leafPageSmallestKeys);
 
     // Step 3: Build the tree
+    // cout << "DiskBTree::DiskBTree(): vec size of smallest key: " << leafPageSmallestKeys.size() << endl;
+    // cout << "DiskBTree::DiskBTree(): vec size of leafPageOffsets: " << leafPageOffsets.size() << endl;
     buildTreeFromLeafPageKeys(leafPageSmallestKeys, leafPageOffsets);
 
     // Step 4: Write the internal nodes into the SST file
@@ -140,7 +122,7 @@ DiskBTree::DiskBTree(const std::string& sstFileName, const std::string& leafsFil
 
     // Step 6: Update and write the metadata page with the actual root offset
     metadataPage.setMetadata(rootOffset, leafBeginOffset, leafEndOffset, sstFileName);
-    pageManager.writePage(0, metadataPage);
+    pageManager->writePage(0, metadataPage);
 
     // After writing, clear the in-memory structures to free memory
     for (auto node : allNodes) {
@@ -164,11 +146,11 @@ std::string DiskBTree::getFileName() const {
 }
 
 void DiskBTree::setBufferPoolParameters(size_t capacity, EvictionPolicy policy) {
-    pageManager.setBufferPoolParameters(capacity, policy);
+    pageManager->setBufferPoolParameters(capacity, policy);
 }
 
 long long DiskBTree::getCacheHit() const {
-    return pageManager.getCacheHit();
+    return pageManager->getCacheHit();
 }
 
 KeyValueWrapper* DiskBTree::search(const KeyValueWrapper& kv) {
@@ -181,7 +163,7 @@ KeyValueWrapper* DiskBTree::search(const KeyValueWrapper& kv) {
         // std::cout << "DiskBTree::search() --> bp " << i++ << std::endl;
 
         // Read the page from disk
-        Page currentPage = pageManager.readPage(currentOffset);
+        Page currentPage = pageManager->readPage(currentOffset);
 
         if (currentPage.getPageType() == Page::PageType::INTERNAL_NODE) {
             // std::cout << "DiskBTree::search() --> INTERNAL_NODE" << std::endl;
@@ -234,7 +216,7 @@ void DiskBTree::scan(const KeyValueWrapper& startKey, const KeyValueWrapper& end
     // Traverse the tree to find the starting leaf node
     while (true) {
         // Read the page from disk
-        Page currentPage = pageManager.readPage(currentOffset);
+        Page currentPage = pageManager->readPage(currentOffset);
 
         if (currentPage.getPageType() == Page::PageType::INTERNAL_NODE) {
             // Internal node
@@ -265,7 +247,7 @@ void DiskBTree::scan(const KeyValueWrapper& startKey, const KeyValueWrapper& end
 
     while (!done) {
         // Read the leaf page from disk
-        Page currentPage = pageManager.readPage(currentOffset);
+        Page currentPage = pageManager->readPage(currentOffset);
 
         // Process current leaf page
         const std::vector<KeyValueWrapper>& kvPairs = currentPage.getLeafEntries();
@@ -567,11 +549,11 @@ void DiskBTree::writeTreeToSST() {
         if (i > 0) {
             leafPages[i - 1].setNextLeafOffset(offset);
             // Re-write the previous leaf page to update the nextLeafOffset
-            pageManager.writePage(leafPageOffsets[i - 1], leafPages[i - 1]);
+            pageManager->writePage(leafPageOffsets[i - 1], leafPages[i - 1]);
         }
 
         // Write the current leaf page
-        pageManager.writePage(offset, leafPages[i]);
+        pageManager->writePage(offset, leafPages[i]);
         leafPageOffsets.push_back(offset);
         currentOffset += pageSize;
     }
@@ -580,7 +562,7 @@ void DiskBTree::writeTreeToSST() {
     if (!leafPages.empty()) {
         leafPages.back().setNextLeafOffset(0);
         // Re-write the last leaf page to update the nextLeafOffset
-        pageManager.writePage(leafPageOffsets.back(), leafPages.back());
+        pageManager->writePage(leafPageOffsets.back(), leafPages.back());
     }
 
     // Set leafBeginOffset and leafEndOffset
@@ -623,7 +605,7 @@ void DiskBTree::writeTreeToSST() {
             }
 
             // Write the page
-            pageManager.writePage(node->offset, internalPage);
+            pageManager->writePage(node->offset, internalPage);
             currentOffset += pageSize;
         }
     }
@@ -666,7 +648,7 @@ void DiskBTree::writeTreeToSSTWithLeafOffsets(const std::vector<uint64_t>& leafP
             }
 
             // Write the page
-            pageManager.writePage(node->offset, internalPage);
+            pageManager->writePage(node->offset, internalPage);
             currentOffset += pageSize;
         }
     }

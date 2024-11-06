@@ -164,8 +164,8 @@ TEST(LSMTreeTest, TriggerMergeAndVerifyLevels) {
     // Verify number of levels
     EXPECT_EQ(lsmTree.getNumLevels(), 3); // Memtable + Level1 + Level2
 
-    // Clean up
-    cleanUpDir(dbPath);
+    // // Clean up
+    // cleanUpDir(dbPath);
 }
 
 // Test 6: Get keys after merge

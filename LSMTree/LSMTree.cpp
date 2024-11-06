@@ -23,8 +23,8 @@ LSMTree::LSMTree(size_t memtableSize, const std::string& dbPath)
     memtable = std::make_unique<Memtable>(static_cast<int>(memtableSize));
 
     // Initialize level capacities
-    // Level 1 capacity is same as memtable size
-    levelMaxSizes.push_back(memtableSize); // Level 1
+    // // Level 1 capacity is same as memtable size
+    // levelMaxSizes.push_back(memtableSize); // Level 1
 
     // Initialize LSM tree
     initializeLSM();
@@ -160,7 +160,7 @@ void LSMTree::loadState() {
 // Get the number of levels in the LSM tree (including memtable)
 size_t LSMTree::getNumLevels() const {
     // levels.size() gives the number of levels excluding memtable (Level 0)
-    return levels.size() + 1; // +1 for memtable
+    return levelMaxSizes.size() + 1; // +1 for memtable
 }
 
 // Set the database path
@@ -181,6 +181,7 @@ void LSMTree::put(const KeyValueWrapper& kv) {
 
     // Check if the memtable needs to be flushed
     if (memtable->getCurrentSize() == memtable->getThreshold()) {
+        // cout << "LSMTree::put() --> flush to L1" << endl;
         flushMemtableToLevel1();
     }
 }
@@ -321,7 +322,6 @@ void LSMTree::scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKe
 void LSMTree::flushMemtableToLevel1() {
     // Get all key-value pairs from the memtable
     std::vector<KeyValueWrapper> kvPairs = memtable->flush();
-    // cout << "LSMTree::flushMemtableToLevel1()" << endl;
 
     // Create a new SSTable (DiskBTree) from the kvPairs
     // Generate a unique SSTable file name
@@ -329,49 +329,59 @@ void LSMTree::flushMemtableToLevel1() {
     fs::path sstablePath = dbPath / sstableFileName;
 
     // Create a new DiskBTree with the kvPairs
+    // cout << "LSMTree::flushMemtableToLevel1() -- Create a new DiskBTree with the kvPairs" << endl;
     std::shared_ptr<DiskBTree> newSSTable = std::make_shared<DiskBTree>(sstablePath.string(), kvPairs);
+    // cout << "finished creating new sst file" << endl;
 
-    // If Level 1 is empty, add the new SSTable
-    if (levels.empty() || !levels[0]) {
-        if (levels.empty()) {
-            levels.push_back(newSSTable);
-            // Initialize Level 1 capacity if not already
-            if (levelMaxSizes.size() < 1) {
-                levelMaxSizes.push_back(memtable->getThreshold());
-            }
-        } else {
-            levels[0] = newSSTable;
-        }
-    } else {
-        // Level 1 has an existing SSTable; merge is needed
-        levels[0] = newSSTable;
-        mergeLevels(1);
-    }
-}
-
-// Merge SSTables when a level exceeds its capacity
-void LSMTree::mergeLevels(int level) {
-    // Ensure levels vector is large enough
-    if (levels.size() <= static_cast<size_t>(level)) {
-        levels.resize(level + 1);
-        // Initialize capacity for new level
-        size_t newLevelCapacity = levelMaxSizes[level - 1] * 2;
-        levelMaxSizes.push_back(newLevelCapacity);
-    }
-
-    // Get SSTables to merge
-    std::shared_ptr<DiskBTree> sst1 = levels[level - 1]; // Level N
-    std::shared_ptr<DiskBTree> sst2 = levels[level];     // Level N+1
-
-    // If Level N+1 is empty, move sst1 up
-    if (!sst2) {
-        levels[level] = sst1;
-        levels[level - 1] = nullptr;
+    // Initialize Level 1 capacity if not already done
+    if (levelMaxSizes.empty()) {
+        // Level 1 capacity is the memtable threshold (e.g., 1000 pairs)
+        levelMaxSizes.push_back(memtable->getThreshold());
+        levels.push_back(newSSTable);
         return;
     }
 
-    // Generate a new SSTable file name
-    std::string newSSTableFileName = generateSSTableFileName(level + 1);
+    // Merge the new SSTable into Level 1
+    // cout << "LSMTree::flushMemtableToLevel1() -- Merge check" << endl;
+    mergeLevels(1, newSSTable);
+}
+
+
+// Merge SSTables when a level exceeds its capacity
+void LSMTree::mergeLevels(int levelIndex, const std::shared_ptr<DiskBTree>& sstToMerge) {
+    // cout << "LSMTree::mergeLevels(): Currently merge level " << levelIndex << endl;
+    int index = levelIndex - 1; // Adjust for 0-based indexing
+
+    // Ensure levelMaxSizes vector is large enough and initialize capacity for the new level
+    if (levelMaxSizes.size() <= static_cast<size_t>(index)) {
+        size_t newLevelCapacity = levelMaxSizes.back() * fixedSizeRatio;
+        levelMaxSizes.push_back(newLevelCapacity);
+    }
+
+    // Ensure levels vector is large enough
+    if (levels.size() <= static_cast<size_t>(index)) {
+        levels.resize(index + 1, nullptr);
+        std::string newLevelSstName = generateSSTableFileName(levelIndex);
+        sstToMerge->updateSstFileName(newLevelSstName);
+        // cout << "LSMTree::mergeLevels():  Branch-1 new sst file:  " << sstToMerge->getSstFilename() << endl;
+        levels[index] = sstToMerge;
+        return;
+    }
+
+    // If the current level is empty, place the new SSTable here
+    if (levels[index] == nullptr || levels[index]->getNumberOfKeyValues() == 0) {
+        std::string newLevelSstName = generateSSTableFileName(levelIndex);
+        sstToMerge->updateSstFileName(newLevelSstName);
+        // cout << "LSMTree::mergeLevels(): Branch-2 new sst file:  " << sstToMerge->getSstFilename() << endl;
+        levels[index] = sstToMerge;
+        return;
+    }
+
+    // There is an existing SSTable at this level; merge is needed
+    std::shared_ptr<DiskBTree> existingSSTable = levels[index];
+
+    // Generate a new SSTable file name for the merged SSTable
+    std::string newSSTableFileName = generateSSTableFileName(levelIndex);
     fs::path newSSTablePath = dbPath / newSSTableFileName;
 
     // Name for the merged leaf pages file
@@ -380,48 +390,64 @@ void LSMTree::mergeLevels(int level) {
 
     // Vector to hold the smallest keys of each leaf page
     std::vector<KeyValueWrapper> leafPageSmallestKeys;
+    int numOfPages = 0;
+    int totalKvs = 0;
+    // Merge existing SSTable and new SSTable into mergedLeafsFileName
+    mergeSSTables(existingSSTable, sstToMerge, mergedLeafsPath.string(), leafPageSmallestKeys, numOfPages, totalKvs);
 
-    // Merge sst1 and sst2 into mergedLeafsFileName, and populate leafPageSmallestKeys
-    mergeSSTables(sst1, sst2, mergedLeafsPath.string(), leafPageSmallestKeys);
-
-    // Create a new DiskBTree instance for the merged SSTable using the new constructor
+    // Create a new DiskBTree instance for the merged SSTable using the provided constructor
+    // cout << "LSMTree::mergeLevels() newSSTablePath.string() is " << newSSTablePath.string() << endl;
     std::shared_ptr<DiskBTree> mergedSSTable = std::make_shared<DiskBTree>(
-        newSSTablePath.string(), mergedLeafsPath.string(), leafPageSmallestKeys);
+        newSSTablePath.string(), mergedLeafsPath.string(), leafPageSmallestKeys, numOfPages, totalKvs);
 
-    // Update levels
-    levels[level] = mergedSSTable;
-    levels[level - 1] = nullptr;
+    // cout << "=========================" << endl;
 
     // Delete old SSTable files and merged leaf pages file
-    fs::remove(sst1->getFileName());
-    fs::remove(sst2->getFileName());
+    fs::remove(existingSSTable->getFileName());
+    fs::remove(sstToMerge->getFileName());
     fs::remove(mergedLeafsPath);
 
-    // Check if the next level exceeds capacity
-    if (level + 1 >= static_cast<int>(levels.size())) {
-        // Initialize capacity for new level
-        size_t newLevelCapacity = levelMaxSizes[level] * 2;
-        levelMaxSizes.push_back(newLevelCapacity);
+    // Check if the merged SSTable exceeds the level capacity
+    // cout << "LSMTree::mergeLevels(): mergedSSTable->getNumberOfKeyValues() ==  " << mergedSSTable->getNumberOfKeyValues() << endl;
+    // cout << "LSMTree::mergeLevels(): levelMaxSizes of Level " << levelIndex << " == " << levelMaxSizes[index] << endl;
+    // cout << "=========================" << endl;
+
+    if (mergedSSTable->getNumberOfKeyValues() > levelMaxSizes[index]) {
+        // cout << "LSMTree::mergeLevels(): ready to merge to next Level" << endl;
+        // Clear current level
+        levels[index] = nullptr;
+        // Merge up to the next level recursively
+        mergeLevels(levelIndex + 1, mergedSSTable);
     } else {
-        // Check if mergedSSTable exceeds capacity
-        if (mergedSSTable->getNumberOfKeyValues() >= levelMaxSizes[level]) {
-            // If it exceeds the capacity, recursively merge up
-            mergeLevels(level + 1);
-        }
+        // Update levels
+        levels[index] = mergedSSTable;
     }
+
+
+
+
 }
+
 
 // Merge two SSTables into a new SSTable
 void LSMTree::mergeSSTables(const std::shared_ptr<DiskBTree>& sst1,
                             const std::shared_ptr<DiskBTree>& sst2,
                             const std::string& mergedLeafsFileName,
-                            std::vector<KeyValueWrapper>& leafPageSmallestKeys) {
+                            std::vector<KeyValueWrapper>& leafPageSmallestKeys,
+                            int& numberOfPages,
+                            int& totalKvs) {
     // Open the output file for writing leaf pages
     PageManager outputLeafPageManager(mergedLeafsFileName);
 
+    Page metadataPage(Page::PageType::SST_METADATA);
+    outputLeafPageManager.writePage(0, metadataPage); // Reserve offset 0
     // Initialize input PageManagers for sst1 and sst2
-    PageManager& pm1 = sst1->pageManager;
-    PageManager& pm2 = sst2->pageManager;
+    PageManager& pm1 = *(sst1->pageManager);
+    PageManager& pm2 = *(sst2->pageManager);
+
+    // cout << "num of kv in sst1: " << sst1->getNumberOfKeyValues() << endl;
+    // cout << "num of kv in sst2: " << sst2->getNumberOfKeyValues() << endl;
+
 
     // Get leaf page offsets
     uint64_t sst1LeafBegin = sst1->getLeafBeginOffset();
@@ -474,6 +500,8 @@ void LSMTree::mergeSSTables(const std::shared_ptr<DiskBTree>& sst1,
     // Iterators over buffer1 and buffer2
     auto it1 = buffer1.begin();
     auto it2 = buffer2.begin();
+
+    uint64_t currentOffset = pageSize;
 
     while ((it1 != buffer1.end() || sst1HasMore) || (it2 != buffer2.end() || sst2HasMore)) {
         // Refill buffer1 if exhausted and more pages are available
@@ -540,15 +568,15 @@ void LSMTree::mergeSSTables(const std::shared_ptr<DiskBTree>& sst1,
 
             if (estimatedPageSize + kvSize > pageSize) {
                 // Page size limit reached, flush current page
-
+                numberOfPages++;
                 // Record the smallest key in this leaf page
                 if (!outputPage->getLeafEntries().empty()) {
                     leafPageSmallestKeys.push_back(outputPage->getLeafEntries().front());
                 }
 
                 // Write outputPage to 'merge.leafs'
-                uint64_t outputPageOffset = outputLeafPageManager.allocatePage();
-                outputLeafPageManager.writePage(outputPageOffset, *outputPage);
+                outputLeafPageManager.writePage(currentOffset, *outputPage);
+                currentOffset += pageSize;
 
                 // Delete current outputPage and create a new one
                 delete outputPage;
@@ -559,6 +587,7 @@ void LSMTree::mergeSSTables(const std::shared_ptr<DiskBTree>& sst1,
 
             // Add kv to outputPage
             outputPage->addLeafEntry(nextKV);
+            totalKvs++;
             outputPage->addToLeafBloomFilter(nextKV);
             estimatedPageSize += kvSize;
         }
@@ -566,12 +595,13 @@ void LSMTree::mergeSSTables(const std::shared_ptr<DiskBTree>& sst1,
 
     // Write any remaining kvs in outputPage
     if (!outputPage->getLeafEntries().empty()) {
+        numberOfPages++;
         // Record the smallest key in this leaf page
         leafPageSmallestKeys.push_back(outputPage->getLeafEntries().front());
 
         // Write outputPage to 'merge.leafs'
-        uint64_t outputPageOffset = outputLeafPageManager.allocatePage();
-        outputLeafPageManager.writePage(outputPageOffset, *outputPage);
+        // cout << "LSMTree::mergeSSTables() write page offset: " << currentOffset << endl;
+        outputLeafPageManager.writePage(currentOffset, *outputPage);
     }
 
     // Clean up

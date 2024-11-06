@@ -52,6 +52,8 @@ private:
     // Each level holds at most one SSTable
     std::vector<std::shared_ptr<DiskBTree>> levels; // Levels 1+
 
+    size_t fixedSizeRatio = 2;
+
     // Level capacities (maximum number of key-value pairs per level)
     std::vector<size_t> levelMaxSizes;
 
@@ -66,13 +68,15 @@ private:
     void flushMemtableToLevel1();
 
     // Merge SSTables when a level exceeds its capacity
-    void mergeLevels(int level);
+    void mergeLevels(int level, const std::shared_ptr<DiskBTree>& sstToMerge);
 
     // Merge two SSTables into a new SSTable
     void mergeSSTables(const std::shared_ptr<DiskBTree>& sst1,
                        const std::shared_ptr<DiskBTree>& sst2,
                        const std::string& outputSSTableFileName,
-                       std::vector<KeyValueWrapper>& leafPageSmallestKeys);
+                       std::vector<KeyValueWrapper>& leafPageSmallestKeys,
+                       int& numberOfPages,
+                       int& totalKvs);
 
     // Generate unique SSTable file names
     std::string generateSSTableFileName(int level);

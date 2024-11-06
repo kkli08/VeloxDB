@@ -140,12 +140,15 @@ std::vector<char> Page::serialize() const {
     // Serialize based on page type
     switch (pageType) {
         case PageType::INTERNAL_NODE:
+            // cout << "Page::serialize() --> serialize internal node" << endl;
             serializeInternalNode(buffer);
             break;
         case PageType::LEAF_NODE:
+            // cout << "Page::serialize() --> serialize leaf node" << endl;
             serializeLeafNode(buffer);
             break;
         case PageType::SST_METADATA:
+            // cout << "Page::serialize() --> serialize sst metadata" << endl;
             serializeSSTMetadata(buffer);
             break;
         default:
