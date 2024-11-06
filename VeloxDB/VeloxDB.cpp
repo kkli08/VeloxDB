@@ -82,16 +82,15 @@ KeyValueWrapper VeloxDB::Get(const KeyValueWrapper& keyValueWrapper) {
 }
 
 // Scan method
-std::set<KeyValueWrapper> VeloxDB::Scan(const KeyValueWrapper& small_key, const KeyValueWrapper& large_key) {
+std::vector<KeyValueWrapper> VeloxDB::Scan(const KeyValueWrapper& small_key, const KeyValueWrapper& large_key) {
     check_if_open();
 
     std::vector<KeyValueWrapper> vectorResult;
     // Use lsmTree's scan method
     lsmTree->scan(small_key, large_key, vectorResult);
 
-    // Convert vectorResult to set<KeyValueWrapper> to eliminate duplicates and sort
-    std::set<KeyValueWrapper> result(vectorResult.begin(), vectorResult.end());
-    return result;
+
+    return vectorResult;
 }
 
 // Helper function to set path

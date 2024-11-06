@@ -159,7 +159,7 @@ TEST(VeloxDBTest, BasicScanRange) {
     db->Put(5, 500);
 
     // Perform a scan for key-value pairs between 2 and 4
-    std::set<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(2, ""), KeyValueWrapper(4, ""));
+    std::vector<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(2, ""), KeyValueWrapper(4, ""));
 
     // Verify the result
     ASSERT_EQ(resultSet.size(), 3);
@@ -189,7 +189,7 @@ TEST(VeloxDBTest, ScanNonExistentRange) {
     db->Put(3, 300);
 
     // Perform a scan for a range with no matching key-value pairs
-    std::set<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(10, ""), KeyValueWrapper(20, ""));
+    std::vector<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(10, ""), KeyValueWrapper(20, ""));
 
     // Verify that no key-value pairs were found
     EXPECT_EQ(resultSet.size(), 0);
@@ -211,7 +211,7 @@ TEST(VeloxDBTest, ScanSingleKeyValuePair) {
     db->Put(3, 300);
 
     // Perform a scan for a single key-value pair (key = 2)
-    std::set<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(2, ""), KeyValueWrapper(2, ""));
+    std::vector<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(2, ""), KeyValueWrapper(2, ""));
 
     // Verify that only one key-value pair was found
     ASSERT_EQ(resultSet.size(), 1);
@@ -238,7 +238,7 @@ TEST(VeloxDBTest, LargeScaleScan) {
     }
 
     // Perform a scan for key-value pairs between 100 and 900
-    std::set<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(100, ""), KeyValueWrapper(500, ""));
+    std::vector<KeyValueWrapper> resultSet = db->Scan(KeyValueWrapper(100, ""), KeyValueWrapper(500, ""));
 
     // Verify that the correct number of key-value pairs were found
     EXPECT_EQ(resultSet.size(), 401);

@@ -213,6 +213,8 @@ TEST(LSMTreeTest, ScanAcrossLevels) {
         lsmTree.put(kv);
     }
 
+    // lsmTree.printTree();
+
     // Define scan range
     KeyValueWrapper startKey(5, 0);
     KeyValueWrapper endKey(12, 0);
@@ -268,3 +270,37 @@ TEST(LSMTreeTest, SaveAndLoadState) {
     cleanUpDir(dbPath);
 }
 
+// Test 8: Scan across memtable and SSTables
+TEST(LSMTreeTest, ScanAcrossLevels_II) {
+    std::string dbPath = "test_lsm_scan_across";
+    cleanUpDir(dbPath);
+
+    size_t memtableSize = 501; // Small size to trigger flushes
+    LSMTree lsmTree(memtableSize, dbPath);
+
+    // Insert 15 keys to populate Level1 and some in memtable
+    std::vector<KeyValueWrapper> keyValues = lsm_generateIntKeyValues(1000);
+    for (const auto& kv : keyValues) {
+        lsmTree.put(kv);
+    }
+
+    // Define scan range
+    KeyValueWrapper startKey(100, 0);
+    KeyValueWrapper endKey(500, 0);
+
+    // print all key
+    lsmTree.printTree();
+    // // Perform scan
+    // std::vector<KeyValueWrapper> scanResult;
+    // lsmTree.scan(startKey, endKey, scanResult);
+    //
+    // for (int i = 0; i < scanResult.size(); ++i) {
+    //     cout << "Keys scanned: " << scanResult[i].kv.int_key() << endl;
+    // }
+    // // Expected keys: 100 to 500 inclusive
+    // EXPECT_EQ(scanResult.size(), 401);
+
+
+    // Clean up
+    cleanUpDir(dbPath);
+}

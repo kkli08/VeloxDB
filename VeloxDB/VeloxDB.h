@@ -34,10 +34,10 @@ public:
     KeyValueWrapper Get(K key);
 
     // SCAN
-    std::set<KeyValueWrapper> Scan(const KeyValueWrapper& small_key, const KeyValueWrapper& large_key);
+    std::vector<KeyValueWrapper> Scan(const KeyValueWrapper& small_key, const KeyValueWrapper& large_key);
     // Overloaded Scan method (takes two keys and uses them for scanning)
     template<typename K1, typename K2>
-    std::set<KeyValueWrapper> Scan(K1 small_key, K2 large_key);
+    std::vector<KeyValueWrapper> Scan(K1 small_key, K2 large_key);
 
     // Set buffer pool parameters
     void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);

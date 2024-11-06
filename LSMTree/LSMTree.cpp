@@ -630,3 +630,43 @@ std::string LSMTree::generateSSTableFileName(int level) {
     static int sstableCounter = 0;
     return "L" + std::to_string(level) + "_SSTable_" + std::to_string(sstableCounter++) + ".sst";
 }
+
+// print LSM-Tree structure
+void LSMTree::printTree() const {
+    for (int i = 0; i < levels.size(); i++) {
+        cout << "\nLevel " << i+1 << ":\n";
+        if (levels[i] == nullptr) {
+            cout << "    No SST file in current level" << endl;
+        }else {
+            uint64_t currentOffset = levels[i]->getLeafBeginOffset();
+            bool done = false;
+
+            while (!done) {
+                // Read the leaf page from disk
+                Page currentPage = levels[i]->pageManager->readPage(currentOffset);
+
+                // Process current leaf page
+                const std::vector<KeyValueWrapper>& kvPairs = currentPage.getLeafEntries();
+
+                // Iterate over the kvPairs
+                for (const auto& kv : kvPairs) {
+                    // for testing purpose, we only print int value
+                    cout << "Key = " << kv.kv.int_key() << " Value = " << kv.kv.int_value() << endl;
+                }
+
+                if (done) {
+                    break;
+                }
+
+                // Move to the next leaf page
+                uint64_t nextLeafOffset = currentPage.getNextLeafOffset();
+                if (nextLeafOffset == 0) {
+                    // No more leaf pages
+                    break;
+                }
+
+                currentOffset = nextLeafOffset;
+            }
+        }
+    }
+}

@@ -24,7 +24,7 @@ KeyValueWrapper VeloxDB::Get(K key) {
 
 // Overloaded Scan method to simplify scanning by passing two keys directly
 template<typename K1, typename K2>
-std::set<KeyValueWrapper> VeloxDB::Scan(K1 small_key, K2 large_key) {
+std::vector<KeyValueWrapper> VeloxDB::Scan(K1 small_key, K2 large_key) {
     check_if_open();
     // Convert the keys to KeyValueWrapper and call the existing Scan method
     KeyValueWrapper kvSmallKey(small_key, "");

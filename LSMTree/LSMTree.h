@@ -44,6 +44,8 @@ public:
     // Scan method
     void scan(const KeyValueWrapper& startKey, const KeyValueWrapper& endKey, std::vector<KeyValueWrapper>& result);
 
+    // print LSM-Tree structure
+    void printTree() const;
 private:
     // Level 0 is always the in-memory memtable
     std::unique_ptr<Memtable> memtable; // Level 0
