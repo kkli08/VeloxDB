@@ -410,7 +410,7 @@ void LSMTree::mergeLevels(int levelIndex, const std::shared_ptr<DiskBTree>& sstT
     mergeSSTables(existingSSTable, sstToMerge, mergedLeafsPath.string(), leafPageSmallestKeys, numOfPages, totalKvs);
 
     // Create a new DiskBTree instance for the merged SSTable using the provided constructor
-    cout << "LSMTree::mergeLevels() newSSTablePath.string() is " << newSSTablePath.string() << endl;
+    // cout << "LSMTree::mergeLevels() newSSTablePath.string() is " << newSSTablePath.string() << endl;
     std::shared_ptr<DiskBTree> mergedSSTable = std::make_shared<DiskBTree>(
         newSSTablePath.string(), mergedLeafsPath.string(), leafPageSmallestKeys, numOfPages, totalKvs);
 
