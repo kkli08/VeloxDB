@@ -47,6 +47,11 @@ public:
     // print LSM-Tree structure
     void printTree() const;
     void printLevelSizes() const;
+
+    // set Buffer Pool Parameter
+    void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
+    long long getTotalCacheHits() const;
+
 private:
     // Level 0 is always the in-memory memtable
     std::unique_ptr<Memtable> memtable; // Level 0
@@ -87,6 +92,9 @@ private:
     // Disable copy and assignment
     LSMTree(const LSMTree&) = delete;
     LSMTree& operator=(const LSMTree&) = delete;
+
+    size_t bufferPoolCapacity;
+    EvictionPolicy bufferPoolPolicy;
 };
 
 #endif // LSMTREE_H

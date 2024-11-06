@@ -93,6 +93,27 @@ std::vector<KeyValueWrapper> VeloxDB::Scan(const KeyValueWrapper& small_key, con
     return vectorResult;
 }
 
+// Delete method
+void VeloxDB::Delete(KeyValueWrapper& keyValueWrapper) {
+    check_if_open();
+    keyValueWrapper.setTombstone(true);
+    lsmTree->put(keyValueWrapper);
+}
+
+// Update method
+int VeloxDB::Update(const KeyValueWrapper& keyValueWrapper) {
+    check_if_open();
+    KeyValueWrapper seached_pair = lsmTree->get(keyValueWrapper);
+
+    if (seached_pair.isDefault()) {
+        cerr << "Failed to update database, No pair found with:  " << endl;
+        keyValueWrapper.printKeyValue();
+        return 0;
+    }
+    lsmTree->put(keyValueWrapper);
+    return 1;
+}
+
 // Helper function to set path
 void VeloxDB::set_path(const fs::path& db_path) {
     path = db_path;
@@ -106,6 +127,7 @@ void VeloxDB::setBufferPoolParameters(size_t capacity, EvictionPolicy policy) {
 
     // Set buffer pool parameters in LSMTree or underlying components
     // TODO: Implement buffer pool parameters in LSMTree components
+
 }
 
 // Print cache hit information

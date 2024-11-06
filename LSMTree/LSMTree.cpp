@@ -652,3 +652,25 @@ void LSMTree::printLevelSizes() const {
         cout << "Level " << i+1 << " maximum size = " << levelMaxSizes[i] << endl;
     }
 }
+
+
+void LSMTree::setBufferPoolParameters(size_t capacity, EvictionPolicy policy) {
+    bufferPoolCapacity = capacity;
+    bufferPoolPolicy = policy;
+
+    // Update existing DiskBTrees
+    for (auto& sst : levels) {
+        if (sst == nullptr) continue;
+        sst->setBufferPoolParameters(capacity, policy);
+    }
+}
+
+long long LSMTree::getTotalCacheHits() const {
+    long long totalCacheHit = 0;
+    for(auto sst : levels) {
+        if (sst == nullptr) continue;
+        totalCacheHit+=sst->getCacheHit();
+    }
+
+    return totalCacheHit;
+}

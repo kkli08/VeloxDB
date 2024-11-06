@@ -39,6 +39,19 @@ public:
     template<typename K1, typename K2>
     std::vector<KeyValueWrapper> Scan(K1 small_key, K2 large_key);
 
+    // DELETE
+    void Delete(KeyValueWrapper& keyValueWrapper);
+    // Overloaded Delete method (takes a key and uses it for lookup)
+    template<typename K>
+    void Delete(K key);
+
+    // UPDATE
+    int Update(const KeyValueWrapper& keyValueWrapper);
+    // Overloaded Update method (takes a key and uses it for lookup)
+    template<typename K, typename V>
+    int Update(K key, V value);
+
+
     // Set buffer pool parameters
     void setBufferPoolParameters(size_t capacity, EvictionPolicy policy);
     void printCacheHit() const;

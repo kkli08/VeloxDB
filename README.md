@@ -7,6 +7,12 @@ inspired by modern databases like [LevelDB](https://github.com/google/leveldb)
 and [RocksDB](https://github.com/facebook/rocksdb), and supports multiple data 
 types using C++ Templates and Protocol Buffers.
 
+### Structure
+| Level            | Data Structure                     |
+|------------------|------------------------------------|
+| `Memory`, `L0`   | `Memtable` using `RB Tree`         |
+| `Disk/SSD`, `L1+` | `DiskBTree` using `Static B+ Tree` |
+
 ### [Database Operations](https://kkli08.github.io/VeloxDB/api/#database-operations)
 
 #### **_VeloxDB::Open(string db_name)_**
@@ -52,7 +58,10 @@ MyDB->Put("Hello", 1e8LL);     // string -> long long
 
 #### **_VeloxDB::Get(const KeyValueWrapper& key)_**
 Retrieves a value from the database based on the key. Supports multiple data types.
-
+```c++
+template<typename K, typename V> 
+void VeloxDB::Put(K key, V value)
+```
 ```c++
 #include "VeloxDB/VeloxDB.h"
 #include "kv/KeyValue.h"
@@ -87,25 +96,68 @@ if(result.isEmpty()){
 }
 ```
 
+
 #### **_VeloxDB::Scan(KeyValueWrapper smallestKey, KeyValueWrapper largestKey)_**
 Scans the database for key-value pairs within a specified key range. The results are returned in sorted key order.
-
+```c++
+template<typename K1, typename K2> 
+std::vector<KeyValueWrapper> VeloxDB::Scan(K1 small_key, K2 large_key)
+```
 ```c++
 #include "VeloxDB/VeloxDB.h"
 // Scan for key-value pairs within a range
 auto MyDB = std::make_unique<VeloxDB>();
 MyDB->Open("database_name");
 // Scan by key
-std::set<KeyValueWrapper> results = MyDB->Scan(1, 10);
+std::vector<KeyValueWrapper> results = MyDB->Scan(1, 10);
 // Scan by `KeyValueWrapper` instance
-std::set<KeyValueWrapper> results = MyDB->Scan(KeyValueWrapper(1, ""), KeyValueWrapper(10, ""));
+std::vector<KeyValueWrapper> results = MyDB->Scan(KeyValueWrapper(1, ""), KeyValueWrapper(10, ""));
 ```
 
-#### **_VeloxDB::Update(KeyValueWrapper KeyToUpdate)_** (TBA)
-This will allow the updating of key-value pairs within the database.
+#### **_Template<typename K, typename V> VeloxDB::Update(K Key, V Value)_**
+This will allow the updating of key-value pairs within the database. 
 
-#### **_VeloxDB::Delete(KeyValueWrapper Key)_** (TBA)
-This will allow the deletion of key-value pairs from the database.
+(_VeloxDB::Put_ actually would achieve the same result)
+```c++
+template<typename K, typename V>
+int VeloxDB::Update(K key, V value)
+```
+```c++
+#include "VeloxDB/VeloxDB.h"
+// Example of inserting different data types
+auto MyDB = std::make_unique<VeloxDB>();
+MyDB->Open("database_name");
+int Key = 1;
+MyDB->Put(Key, 100);                // int -> int
+// update values with 'A'
+if(MyDB->Update(Key, 'A')){
+    // success update
+}else{
+    // No pair found by Key
+}             
+// update values with "Hello World"
+MyDB->Update(Key, "Hello World");   
+```
+
+#### **_Template<typename K> VeloxDB::Delete(K Key)_**
+This will allow the deletion of key-value pair from the database.
+It will delete the kv pair by insert a new kv pair with the largest sequential number and
+set `Tombstone` to `true`. It will not been saved into SST file by the next **`Merge`** Operation 
+inside LSM Tree structure.
+```c++
+template<typename K>
+void VeloxDB::Delete(K key)
+```
+```c++
+#include "VeloxDB/VeloxDB.h"
+// Example of inserting different data types
+auto MyDB = std::make_unique<VeloxDB>();
+MyDB->Open("database_name");
+int Key = 1;
+MyDB->Put(Key, 100);                // int -> int
+// delete values with 'A'
+MyDB->Delete(Key);                  // equal to MyDB->Put(Key, 'A'); 
+```
 
 ### [**Buffer Pool Operation**](https://kkli08.github.io/VeloxDB/api/#buffer-pool-operation)
 

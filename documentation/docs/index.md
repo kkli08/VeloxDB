@@ -7,6 +7,13 @@ inspired by modern databases like [LevelDB](https://github.com/google/leveldb)
 and [RocksDB](https://github.com/facebook/rocksdb), and supports multiple data
 types using C++ Templates and Protocol Buffers.
 
+> 2024-11-06 Restructure with LSM Tree;  
+
+## Structure
+| Level            | Data Structure                     |
+|------------------|------------------------------------|
+| `Memory`, `L0`   | `Memtable` using `RB Tree`         |
+| `Disk/SSD`, `L1+` | `DiskBTree` using `Static B+ Tree` |
 
 ## Supported Data Types
 > 2024-09-12 Restructure with `Protobuf`
@@ -53,17 +60,6 @@ enum KeyValueType { INT, LONG, DOUBLE, CHAR, STRING };
 > 2024-08-28 Support <int_64, int_64>
 >
 
-
-
-
-[//]: # (### Dataflow Diagram)
-
-[//]: # (![DFD]&#40;/img/dfd/kvdb_lv0_v2.0.jpg&#41;)
-
-[//]: # ()
-[//]: # (### UML)
-
-[//]: # (![UML]&#40;img/uml/kvdb_s2_uml_v2.1.jpg&#41;)
 
 ## Supported Language
 | Language | Status |
