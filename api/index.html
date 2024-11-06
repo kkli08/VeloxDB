@@ -320,15 +320,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#template-veloxdbputk-key-v-value" class="md-nav__link">
-    <span class="md-ellipsis">
-      Template VeloxDB::Put(K key, V value)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#veloxdbgetconst-keyvaluewrapper-key" class="md-nav__link">
     <span class="md-ellipsis">
       VeloxDB::Get(const KeyValueWrapper&amp; key)
@@ -347,18 +338,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#veloxdbupdatekeyvaluewrapper-keytoupdate" class="md-nav__link">
+  <a href="#template-veloxdbupdatek-key-v-value" class="md-nav__link">
     <span class="md-ellipsis">
-      VeloxDB::Update(KeyValueWrapper KeyToUpdate)
+      Template VeloxDB::Update(K Key, V Value)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#veloxdbdeletekeyvaluewrapper-key" class="md-nav__link">
+  <a href="#template-veloxdbdeletek-key" class="md-nav__link">
     <span class="md-ellipsis">
-      VeloxDB::Delete(KeyValueWrapper Key)
+      Template VeloxDB::Delete(K Key)
     </span>
   </a>
   
@@ -538,15 +529,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#template-veloxdbputk-key-v-value" class="md-nav__link">
-    <span class="md-ellipsis">
-      Template VeloxDB::Put(K key, V value)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#veloxdbgetconst-keyvaluewrapper-key" class="md-nav__link">
     <span class="md-ellipsis">
       VeloxDB::Get(const KeyValueWrapper&amp; key)
@@ -565,18 +547,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#veloxdbupdatekeyvaluewrapper-keytoupdate" class="md-nav__link">
+  <a href="#template-veloxdbupdatek-key-v-value" class="md-nav__link">
     <span class="md-ellipsis">
-      VeloxDB::Update(KeyValueWrapper KeyToUpdate)
+      Template VeloxDB::Update(K Key, V Value)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#veloxdbdeletekeyvaluewrapper-key" class="md-nav__link">
+  <a href="#template-veloxdbdeletek-key" class="md-nav__link">
     <span class="md-ellipsis">
-      VeloxDB::Delete(KeyValueWrapper Key)
+      Template VeloxDB::Delete(K Key)
     </span>
   </a>
   
@@ -664,20 +646,12 @@
 </code></pre></div>
 
 <h3 id="data-operations">Data Operations<a class="headerlink" href="#data-operations" title="Permanent link">&para;</a></h3>
-<h4 id="template-veloxdbputk-key-v-value"><strong><em>Template<typename K, typename V> VeloxDB::Put(K key, V value)</em></strong><a class="headerlink" href="#template-veloxdbputk-key-v-value" title="Permanent link">&para;</a></h4>
-<p>Inserts a key-value pair into the database, where both the key and value can be of various types (int, double, string, etc.).</p>
-<div class="codehilite"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;VeloxDB/VeloxDB.h&quot;</span>
-<span class="c1">// Example of inserting different data types</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">MyDB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">();</span>
-<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span>
-<span class="c1">// put</span>
-<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">);</span><span class="w">             </span><span class="c1">// int -&gt; int</span>
-<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span><span class="w"> </span><span class="sc">&#39;A&#39;</span><span class="p">);</span><span class="w">           </span><span class="c1">// double -&gt; char</span>
-<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e8L</span><span class="n">L</span><span class="p">);</span><span class="w">     </span><span class="c1">// string -&gt; long long</span>
-</code></pre></div>
-
 <h4 id="veloxdbgetconst-keyvaluewrapper-key"><strong><em>VeloxDB::Get(const KeyValueWrapper&amp; key)</em></strong><a class="headerlink" href="#veloxdbgetconst-keyvaluewrapper-key" title="Permanent link">&para;</a></h4>
 <p>Retrieves a value from the database based on the key. Supports multiple data types.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">K</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">V</span><span class="o">&gt;</span><span class="w"> </span>
+<span class="kt">void</span><span class="w"> </span><span class="n">VeloxDB</span><span class="o">::</span><span class="n">Put</span><span class="p">(</span><span class="n">K</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+
 <div class="codehilite"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;VeloxDB/VeloxDB.h&quot;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;kv/KeyValue.h&quot;</span>
 <span class="c1">// Example of retrieving values</span>
@@ -688,7 +662,7 @@
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e8L</span><span class="n">L</span><span class="p">);</span>
 
 <span class="c1">// Retrieve the value by key</span>
-<span class="k">auto</span><span class="w"> </span><span class="n">result1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// get</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">result1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Get</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span>
 <span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">value1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result1</span><span class="p">.</span><span class="n">kv</span><span class="p">.</span><span class="n">long_value</span><span class="p">();</span><span class="w"> </span><span class="c1">// 1e8</span>
 <span class="n">string</span><span class="w"> </span><span class="n">key1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result1</span><span class="p">.</span><span class="n">kv</span><span class="p">.</span><span class="n">string_key</span><span class="p">();</span><span class="w"> </span><span class="c1">// &quot;Hello&quot;</span>
 
@@ -713,22 +687,62 @@
 
 <h4 id="veloxdbscankeyvaluewrapper-smallestkey-keyvaluewrapper-largestkey"><strong><em>VeloxDB::Scan(KeyValueWrapper smallestKey, KeyValueWrapper largestKey)</em></strong><a class="headerlink" href="#veloxdbscankeyvaluewrapper-smallestkey-keyvaluewrapper-largestkey" title="Permanent link">&para;</a></h4>
 <p>Scans the database for key-value pairs within a specified key range. The results are returned in sorted key order.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">K1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">K2</span><span class="o">&gt;</span><span class="w"> </span>
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">VeloxDB</span><span class="o">::</span><span class="n">Scan</span><span class="p">(</span><span class="n">K1</span><span class="w"> </span><span class="n">small_key</span><span class="p">,</span><span class="w"> </span><span class="n">K2</span><span class="w"> </span><span class="n">large_key</span><span class="p">)</span>
+</code></pre></div>
+
 <div class="codehilite"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;VeloxDB/VeloxDB.h&quot;</span>
 <span class="c1">// Scan for key-value pairs within a range</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">MyDB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span>
 <span class="c1">// Scan by key</span>
-<span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Scan</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span><span class="w"> </span><span class="c1">// scan</span>
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Scan</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span>
 <span class="c1">// Scan by `KeyValueWrapper` instance</span>
-<span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Scan</span><span class="p">(</span><span class="n">KeyValueWrapper</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">KeyValueWrapper</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">));</span>
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Scan</span><span class="p">(</span><span class="n">KeyValueWrapper</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">KeyValueWrapper</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">));</span>
 </code></pre></div>
 
-<h4 id="veloxdbupdatekeyvaluewrapper-keytoupdate"><strong><em>VeloxDB::Update(KeyValueWrapper KeyToUpdate)</em></strong><a class="headerlink" href="#veloxdbupdatekeyvaluewrapper-keytoupdate" title="Permanent link">&para;</a></h4>
-<p>(TBA)
-This will allow the updating of key-value pairs within the database.</p>
-<h4 id="veloxdbdeletekeyvaluewrapper-key"><strong><em>VeloxDB::Delete(KeyValueWrapper Key)</em></strong><a class="headerlink" href="#veloxdbdeletekeyvaluewrapper-key" title="Permanent link">&para;</a></h4>
-<p>(TBA)
-This will allow the deletion of key-value pairs from the database.</p>
+<h4 id="template-veloxdbupdatek-key-v-value"><strong><em>Template<typename K, typename V> VeloxDB::Update(K Key, V Value)</em></strong><a class="headerlink" href="#template-veloxdbupdatek-key-v-value" title="Permanent link">&para;</a></h4>
+<p>This will allow the updating of key-value pairs within the database.</p>
+<p>(<em>VeloxDB::Put</em> actually would achieve the same result)</p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">K</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">V</span><span class="o">&gt;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">VeloxDB</span><span class="o">::</span><span class="n">Update</span><span class="p">(</span><span class="n">K</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;VeloxDB/VeloxDB.h&quot;</span>
+<span class="c1">// Example of inserting different data types</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">MyDB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">Key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="n">Key</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">);</span><span class="w">                </span><span class="c1">// int -&gt; int</span>
+<span class="c1">// update values with &#39;A&#39;</span>
+<span class="k">if</span><span class="p">(</span><span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Update</span><span class="p">(</span><span class="n">Key</span><span class="p">,</span><span class="w"> </span><span class="sc">&#39;A&#39;</span><span class="p">)){</span>
+<span class="w">    </span><span class="c1">// success update</span>
+<span class="p">}</span><span class="k">else</span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// No pair found by Key</span>
+<span class="p">}</span><span class="w">             </span>
+<span class="c1">// update values with &quot;Hello World&quot;</span>
+<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Update</span><span class="p">(</span><span class="n">Key</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Hello World&quot;</span><span class="p">);</span><span class="w">   </span>
+</code></pre></div>
+
+<h4 id="template-veloxdbdeletek-key"><strong><em>Template<typename K> VeloxDB::Delete(K Key)</em></strong><a class="headerlink" href="#template-veloxdbdeletek-key" title="Permanent link">&para;</a></h4>
+<p>This will allow the deletion of key-value pair from the database.
+It will delete the kv pair by insert a new kv pair with the largest sequential number and
+set <code>Tombstone</code> to <code>true</code>. It will not been saved into SST file by the next <strong><code>Merge</code></strong> Operation
+inside LSM Tree structure.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">K</span><span class="o">&gt;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">VeloxDB</span><span class="o">::</span><span class="n">Delete</span><span class="p">(</span><span class="n">K</span><span class="w"> </span><span class="n">key</span><span class="p">)</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;VeloxDB/VeloxDB.h&quot;</span>
+<span class="c1">// Example of inserting different data types</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">MyDB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">VeloxDB</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Open</span><span class="p">(</span><span class="s">&quot;database_name&quot;</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">Key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Put</span><span class="p">(</span><span class="n">Key</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">);</span><span class="w">                </span><span class="c1">// int -&gt; int</span>
+<span class="c1">// delete values with &#39;A&#39;</span>
+<span class="n">MyDB</span><span class="o">-&gt;</span><span class="n">Delete</span><span class="p">(</span><span class="n">Key</span><span class="p">);</span><span class="w">                  </span><span class="c1">// equal to MyDB-&gt;Put(Key, &#39;A&#39;); </span>
+</code></pre></div>
+
 <h3 id="buffer-pool-operation"><strong>Buffer Pool Operation</strong><a class="headerlink" href="#buffer-pool-operation" title="Permanent link">&para;</a></h3>
 <h4 id="setbufferpoolparameterssize_t-capacity-evictionpolicy-policy"><strong><em>setBufferPoolParameters(size_t capacity, EvictionPolicy policy)</em></strong><a class="headerlink" href="#setbufferpoolparameterssize_t-capacity-evictionpolicy-policy" title="Permanent link">&para;</a></h4>
 <p>Set/reset buffer pool <code>size_t::</code> <strong>capacity</strong> and <code>EvictionPolicy::</code> <strong>policy</strong> (<code>LRU</code>, <code>CLOCK</code>, <code>RANDOM</code>)</p>

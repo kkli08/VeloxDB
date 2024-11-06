@@ -60,7 +60,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#buffer-pool" class="md-skip">
+        <a href="#lsm-tree" class="md-skip">
           Skip to content
         </a>
       
@@ -335,6 +335,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#lsm-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      LSM-Tree
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#buffer-pool" class="md-nav__link">
     <span class="md-ellipsis">
       Buffer Pool
@@ -382,15 +391,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lsm-tree" class="md-nav__link">
-    <span class="md-ellipsis">
-      LSM-Tree
-    </span>
-  </a>
   
 </li>
       
@@ -427,6 +427,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#lsm-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      LSM-Tree
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#buffer-pool" class="md-nav__link">
     <span class="md-ellipsis">
       Buffer Pool
@@ -477,15 +486,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#lsm-tree" class="md-nav__link">
-    <span class="md-ellipsis">
-      LSM-Tree
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -505,6 +505,72 @@
 
 
   <h1>Database Design</h1>
+
+<h3 id="lsm-tree"><strong>LSM-Tree</strong><a class="headerlink" href="#lsm-tree" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// LSMTree.h</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LSMTree</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="c1">// Constructor with optional memtable size (default to 1000)</span>
+<span class="w">    </span><span class="n">LSMTree</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">memtableSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">dbPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;defaultDB&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Destructor</span>
+<span class="w">    </span><span class="o">~</span><span class="n">LSMTree</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Save the state of the LSM tree to a .lsm file</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">saveState</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Load the state of the LSM tree from a .lsm file</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">loadState</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Insert a key-value pair into the LSM tree</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">put</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">KeyValueWrapper</span><span class="o">&amp;</span><span class="w"> </span><span class="n">kv</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Search for a key-value pair in the LSM tree</span>
+<span class="w">    </span><span class="n">KeyValueWrapper</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">KeyValueWrapper</span><span class="o">&amp;</span><span class="w"> </span><span class="n">kv</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Scan method</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">scan</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">KeyValueWrapper</span><span class="o">&amp;</span><span class="w"> </span><span class="n">startKey</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">KeyValueWrapper</span><span class="o">&amp;</span><span class="w"> </span><span class="n">endKey</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">result</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="c1">// Level 0 is always the in-memory memtable</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Memtable</span><span class="o">&gt;</span><span class="w"> </span><span class="n">memtable</span><span class="p">;</span><span class="w"> </span><span class="c1">// Level 0</span>
+
+<span class="w">    </span><span class="c1">// Levels 1 and above consist of DiskBTrees (SSTables)</span>
+<span class="w">    </span><span class="c1">// Each level holds at most one SSTable</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">DiskBTree</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">levels</span><span class="p">;</span><span class="w"> </span><span class="c1">// Levels 1+</span>
+
+<span class="w">    </span><span class="c1">// Size Ratio of the LSM-Tree between levels</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">fixedSizeRatio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Level capacities (maximum number of key-value pairs per level)</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="w"> </span><span class="n">levelMaxSizes</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Path to the .lsm file and database directory</span>
+<span class="w">    </span><span class="n">fs</span><span class="o">::</span><span class="n">path</span><span class="w"> </span><span class="n">dbPath</span><span class="p">;</span>
+<span class="w">    </span><span class="n">fs</span><span class="o">::</span><span class="n">path</span><span class="w"> </span><span class="n">lsmFilePath</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Helper methods</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">initializeLSM</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Handle flushing memtable to Level 1</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">flushMemtableToLevel1</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Merge SSTables when a level exceeds its capacity</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">mergeLevels</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">level</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">DiskBTree</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">sstToMerge</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Merge two SSTables into a new SSTable</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">mergeSSTables</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">DiskBTree</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">sst1</span><span class="p">,</span>
+<span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">DiskBTree</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">sst2</span><span class="p">,</span>
+<span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">outputSSTableFileName</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">leafPageSmallestKeys</span><span class="p">,</span>
+<span class="w">                       </span><span class="kt">int</span><span class="o">&amp;</span><span class="w"> </span><span class="n">numberOfPages</span><span class="p">,</span>
+<span class="w">                       </span><span class="kt">int</span><span class="o">&amp;</span><span class="w"> </span><span class="n">totalKvs</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// ...</span>
+<span class="p">};</span>
+</code></pre></div>
 
 <h3 id="buffer-pool"><strong>Buffer Pool</strong><a class="headerlink" href="#buffer-pool" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span><code><span class="c1">// PageManager.h</span>
@@ -529,7 +595,15 @@
 </code></pre></div>
 
 <h3 id="bloom-filter"><strong>Bloom Filter</strong><a class="headerlink" href="#bloom-filter" title="Permanent link">&para;</a></h3>
-<p>TBD</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// VeloxDB.h</span>
+
+<span class="c1">// Set buffer pool parameters</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">setBufferPoolParameters</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">capacity</span><span class="p">,</span><span class="w"> </span><span class="n">EvictionPolicy</span><span class="w"> </span><span class="n">policy</span><span class="p">);</span>
+
+<span class="c1">// Print total CacheHit in the buffer pool</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">printCacheHit</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+</code></pre></div>
+
 <h3 id="static-b-tree-as-sst-file"><strong>Static B+ Tree as SST file</strong><a class="headerlink" href="#static-b-tree-as-sst-file" title="Permanent link">&para;</a></h3>
 <h4 id="writing-into-sst-file">Writing into sst file<a class="headerlink" href="#writing-into-sst-file" title="Permanent link">&para;</a></h4>
 <div class="codehilite"><pre><span></span><code><span class="n">DiskBTree</span><span class="o">::</span><span class="n">DiskBTree</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sstFileName</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">KeyValueWrapper</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">keyValues</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">pageSize</span><span class="p">)</span>
@@ -587,9 +661,6 @@
 <span class="w">    </span><span class="c1">// We rely on reading pages from disk during search and scan operations</span>
 <span class="p">}</span>
 </code></pre></div>
-
-<h3 id="lsm-tree"><strong>LSM-Tree</strong><a class="headerlink" href="#lsm-tree" title="Permanent link">&para;</a></h3>
-<p>TBD</p>
 
 
 
