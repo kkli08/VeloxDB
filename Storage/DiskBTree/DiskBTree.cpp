@@ -62,7 +62,8 @@ DiskBTree::DiskBTree(const std::string& sstFileName)
 
     // sstFileName is already set; ensure it matches the metadata (optional)
     if (sstFileName != fileName) {
-        std::cerr << "Warning: SST file name does not match metadata file name." << std::endl;
+        fileName = sstFileName;
+        // std::cerr << "Warning: SST file name does not match metadata file name." << std::endl;
     }
 
     // Since the tree is static, we don't load any nodes into memory
@@ -86,6 +87,7 @@ DiskBTree::DiskBTree(const std::string& sstFileName, const std::string& leafsFil
     std::vector<uint64_t> leafPageOffsets; // Offsets of leaf pages in the SST file
 
     PageManager leafPageManager(leafsFileName);
+    // cout << "DiskBTree::DiskBTree(): Number of Pages to read: " << numOfPages << std::endl;
     for(int i = 0; i < numOfPages; i++) {
         // cout << "DiskBTree::DiskBTree() read page offset: " << currentOffset << endl;
         Page leafPage = leafPageManager.readPage(currentOffset);

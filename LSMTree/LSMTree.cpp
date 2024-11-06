@@ -204,7 +204,7 @@ KeyValueWrapper LSMTree::get(const KeyValueWrapper& kv) {
     for (size_t levelIndex = 0; levelIndex < levels.size(); ++levelIndex) {
         // std::cout << "LSMTree::get(), levelIndex = " << levelIndex << std::endl;
         std::shared_ptr<DiskBTree> sst = levels[levelIndex];
-        if (sst) {
+        if (sst != nullptr) {
             KeyValueWrapper* kvPtr = sst->search(kv);
             if (kvPtr && !kvPtr->isEmpty()) {
                 if (!kvPtr->isTombstone()) {
@@ -361,8 +361,15 @@ void LSMTree::mergeLevels(int levelIndex, const std::shared_ptr<DiskBTree>& sstT
     // Ensure levels vector is large enough
     if (levels.size() <= static_cast<size_t>(index)) {
         levels.resize(index + 1, nullptr);
+        // update file info
         std::string newLevelSstName = generateSSTableFileName(levelIndex);
-        sstToMerge->updateSstFileName(newLevelSstName);
+        fs::path oldSstPath = sstToMerge->getFileName();
+        fs::path newSstPath = dbPath / newLevelSstName;
+        // update actual file location
+        fs::rename(oldSstPath, newSstPath);
+        // update the logical file name
+        sstToMerge->updateSstFileName(newSstPath.string());
+
         // cout << "LSMTree::mergeLevels():  Branch-1 new sst file:  " << sstToMerge->getSstFilename() << endl;
         levels[index] = sstToMerge;
         return;
@@ -370,8 +377,15 @@ void LSMTree::mergeLevels(int levelIndex, const std::shared_ptr<DiskBTree>& sstT
 
     // If the current level is empty, place the new SSTable here
     if (levels[index] == nullptr || levels[index]->getNumberOfKeyValues() == 0) {
+        // update file info
         std::string newLevelSstName = generateSSTableFileName(levelIndex);
-        sstToMerge->updateSstFileName(newLevelSstName);
+        fs::path oldSstPath = sstToMerge->getFileName();
+        fs::path newSstPath = dbPath / newLevelSstName;
+        // update actual file location
+        fs::rename(oldSstPath, newSstPath);
+        // update the logical file name
+        sstToMerge->updateSstFileName(newSstPath.string());
+
         // cout << "LSMTree::mergeLevels(): Branch-2 new sst file:  " << sstToMerge->getSstFilename() << endl;
         levels[index] = sstToMerge;
         return;
